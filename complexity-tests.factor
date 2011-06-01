@@ -64,5 +64,16 @@ unit-test
 
 { { 3 3 3 4 5 3 3 3 6 7 3 3 3 } }
 [
-{ 3 4 5 6 7 } T{ step-operator f 1 3 T{ copy-operator f 1 2 }
-2
+    { 3 4 5 6 7 }
+    T{ step-operator f 1 3 T{ copy-operator f 1 2 } 2 }
+    apply
+]
+unit-test
+
+{ { 3 4 5 6 3 7 8 9 10 3 3 3 } }
+[
+    { 3 3 3 3 3 }
+    T{ step-operator f 1 2 T{ increment-operator f 1 3 } 1 }
+    apply
+]
+unit-test

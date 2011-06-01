@@ -125,8 +125,7 @@ TUPLE: step-operator < operator operator gap ;
 
 : (step-operator-apply)
 ( arg computed rest op -- arg' computed' rest' op )
-    dup times>> 0 =
-    [ ]
+    dup times>> 0 = not
     [
         decrement-times
         dup operator>> clone swap ! arg beg rest oop op
@@ -137,12 +136,16 @@ TUPLE: step-operator < operator operator gap ;
                 append unclip-last { } swap prefix swap
             ] dip
         ] dip
-        dup gap>> swap ! arg b e gap op
-        [ cut ] dip ! arg b eb ee op
-        [ append ] 2dip ! arg newb ee op
-        (step-operator-apply)
+        dup times>> 0 = not
+        [
+            dup gap>> swap ! arg b e gap op
+            [ cut ] dip ! arg b eb ee op
+            [ append ] 2dip ! arg newb ee op
+            (step-operator-apply)
+        ]
+        when
     ]
-    if ;
+    when ;
 
 M: step-operator apply
     dup operator>> increment-times drop
