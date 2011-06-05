@@ -10,12 +10,6 @@ USING:
     classes
     ;
 
-: 2dig ( x y z -- z x y )
-    swap [ swap ] dip ;
-
-: 2dig-up ( x y z -- y z x )
-    [ swap ] dip swap ;
-
 TUPLE: operator cost times ;
 
 : decrement-times ( operator -- operator )
@@ -26,6 +20,11 @@ TUPLE: operator cost times ;
 
 GENERIC: apply ( argument operator -- result )
 
+GENERIC: apply-on-one ( argument operator -- result operator )
+
+: check-compatibility ( argument result operator -- ? )
+    swap [ apply-on-one drop ] dip = ;
+
 GENERIC: (search-operator) ( list operator -- rest operator )
 
 GENERIC: search-operator ( list operator -- compressed )
@@ -35,6 +34,12 @@ TUPLE: copy-operator < operator ;
 : <copy-operator> ( -- copy-operator )
     copy-operator new 0 >>times 1 >>cost
     ;
+
+M: copy-operator apply-on-one
+    decrement-times
+    [
+        dup operator instance? [ clone ] when
+    ] dip ;
 
 M: copy-operator apply
     dup times>> 0 =
@@ -91,7 +96,7 @@ TUPLE: increment-operator < operator ;
     ] if ;
 
 M: increment-operator apply
-    { } 2dig (increment-operator-apply) drop append ;
+    { } -rot (increment-operator-apply) drop append ;
     
 M: increment-operator (search-operator)
     swap dup 1 tail empty?
@@ -130,7 +135,7 @@ TUPLE: step-operator < operator operator gap ;
         decrement-times
         dup operator>> clone swap ! arg beg rest oop op
         [
-            [ 2dig-up ] dip apply ! beg rest aarg
+            [ rot ] dip apply ! beg rest aarg
             swap
             [
                 append unclip-last { } swap prefix swap
