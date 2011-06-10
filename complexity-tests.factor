@@ -1,13 +1,5 @@
 USING: tools.test complexity accessors ;
 
-{ 3 1 2 }
-[ 1 2 3 2dig ]
-unit-test
-
-{ 2 3 1 }
-[ 1 2 3 2dig-up ]
-unit-test
-
 { 4 }
 [ T{ operator f 0 5 } decrement-times times>> ]
 unit-test

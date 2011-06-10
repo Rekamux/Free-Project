@@ -13,10 +13,10 @@ USING:
 TUPLE: operator cost times ;
 
 : decrement-times ( operator -- operator )
-    dup times>> 1 - >>times ;
+    [ 1 - ] change-times ;
 
 : increment-times ( operator -- operator )
-    dup times>> 1 + >>times ;
+    [ 1 + ] change-times ;
 
 GENERIC: apply ( argument operator -- result )
 
