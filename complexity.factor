@@ -8,15 +8,36 @@ USING:
     accessors
     summary
     classes
+    namespaces
     ;
 
-TUPLE: operator cost times ;
+TUPLE: operator times ;
+
+GENERIC: cost>> ( operator -- cost )
 
 : decrement-times ( operator -- operator )
     [ 1 - ] change-times ;
 
 : increment-times ( operator -- operator )
     [ 1 + ] change-times ;
+
+: extract-cost ( arg -- cost )
+    dup operator instance?
+    [ cost>> ]
+    [ 
+        dup 0 =
+        [ 1 + ]
+        [ log2 1 + ]
+        if
+    ] if ;
+
+: (complexity) ( cost list -- newcost rest )
+    [ { } ]
+    [ unclip extract-cost rot + swap (complexity) ]
+    if-empty ;
+
+: complexity ( list -- cost )
+    0 swap (complexity) drop ;
 
 GENERIC: apply ( argument operator -- result )
 
@@ -29,11 +50,15 @@ GENERIC: (search-operator) ( list operator -- rest operator )
 
 GENERIC: search-operator ( list operator -- compressed )
 
+
 TUPLE: copy-operator < operator ;
 
 : <copy-operator> ( -- copy-operator )
-    copy-operator new 0 >>times 1 >>cost
+    copy-operator new 0 >>times
     ;
+
+M: operator cost>>
+    times>> extract-cost ;
 
 M: copy-operator apply-on-one
     decrement-times
@@ -49,11 +74,10 @@ M: copy-operator apply
         dup empty?
         [ nip ]
         [
-            dup first
-            dup operator instance? [ clone ] when
-            prefix
-            [ decrement-times ] dip
-            swap apply
+            dup first rot
+            apply-on-one
+            [ prefix ] dip
+            apply
         ] if
     ] if ;
 
@@ -76,7 +100,7 @@ M: copy-operator search-operator
 TUPLE: increment-operator < operator ;
 
 : <increment-operator> ( -- increment-operator )
-    increment-operator new 0 >>times 1 >>cost ;
+    increment-operator new 0 >>times ;
 
 : (increment-operator-apply)
 ( computed rest operator -- computed' rest' operator )
@@ -125,8 +149,12 @@ M: increment-operator search-operator
 TUPLE: step-operator < operator operator gap ;
 
 : <step-operator> ( -- step-operator )
-    step-operator new 0
-    >>times 1 >>cost 0 >>operator 0 >>gap ;
+    step-operator new 0 >>times 0 >>operator 0 >>gap ;
+
+M: step-operator cost>>
+    [ times>> extract-cost ]
+    [ operator>> extract-cost ]
+    [ gap>> extract-cost ] tri + + ;
 
 : (step-operator-apply)
 ( arg computed rest op -- arg' computed' rest' op )
@@ -157,3 +185,50 @@ M: step-operator apply
     [ unclip { } swap prefix swap { } swap ] dip
     (step-operator-apply)
     drop append swap drop ;
+
+! Try a list of operator on a sequence and keep the most
+! efficient one
+: which-operator ( operator-list list -- result )
+        [ search-operator ] curry map
+        { T{ operator f 0 } }
+        [
+            [ dup first times>> ] bi@ rot <
+            [ [ drop ] dip ]
+            [ drop ] if
+        ] reduce ;
+
+: (iter-compress) ( list rest -- list' rest' )
+    dup empty?
+    [ ]
+    [
+        dup { copy-operator increment-operator } swap
+        which-operator
+        dup first times>> 0 =
+        [ drop unclip swap [ prefix ] dip ]
+        [ [ drop ] dip 2 cut [ append ] dip ] if
+        (iter-compress)
+    ]
+    if ;
+
+: iter-compress ( list -- list' )
+    { } swap (iter-compress) drop ;
+
+SYMBOL: current-result
+SYMBOL: current-cost
+
+: (compress) ( -- )
+    current-result get
+    iter-compress
+    dup extract-cost current-cost get <
+    [
+        [ extract-cost current-cost swap set ]
+        [ current-result swap set ] bi
+        (compress)
+    ]
+    [ drop ] if ; 
+
+: compress ( list -- result )
+    [ extract-cost current-cost swap set ]
+    [ current-result swap set ]
+    bi
+    (compress) current-cost get ;

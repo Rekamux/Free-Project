@@ -1,63 +1,70 @@
-USING: tools.test complexity accessors ;
+USING:
+    tools.test
+    complexity
+    accessors
+    sequences
+    ;
 
 { 4 }
-[ T{ operator f 0 5 } decrement-times times>> ]
+[ T{ operator f 5 } decrement-times times>> ]
 unit-test
 
 { 4 }
-[ T{ operator f 0 3 } increment-times times>> ]
+[ T{ operator f 3 } increment-times times>> ]
 unit-test
 
 { {
-    T{ copy-operator f 0 1 }
-    T{ copy-operator f 0 1 }
-    T{ copy-operator f 0 1 }
-    T{ copy-operator f 0 1 }
-    T{ copy-operator f 0 1 } 
+    T{ copy-operator f 1 }
+    T{ copy-operator f 1 }
+    T{ copy-operator f 1 }
+    T{ copy-operator f 1 }
+    T{ copy-operator f 1 } 
     2 3 4 5
 } }
 [
-    { T{ copy-operator f 0 1 } 2 3 4 5 }
-    T{ copy-operator f 0 4 }
+    { T{ copy-operator f 1 } 2 3 4 5 }
+    T{ copy-operator f 4 }
     apply
 ]
 unit-test
 
 { { 1 1 1 1 1 2 3 4 5 } }
-[ { 1 2 3 4 5 } T{ copy-operator f 0 4 } apply ]
+[ { 1 2 3 4 5 } <copy-operator> 4 >>times apply ]
 unit-test
 
-{ { T{ copy-operator f 1 4 } 1 2 3 4 5 } }
+{ { T{ copy-operator f 4 } 1 2 3 4 5 } }
 [ { 1 1 1 1 1 2 3 4 5 } <copy-operator> search-operator ]
 unit-test
 
 
 { { 1 2 3 4 5 } }
-[ { 1 } T{ increment-operator f 0 4 } apply ]
+[ { 1 } <increment-operator> 4 >>times apply ]
 unit-test
 
 { {
-    T{ increment-operator f 0 1 }
-    T{ increment-operator f 0 2 }
-    T{ increment-operator f 0 3 }
-    T{ increment-operator f 0 4 }
-    T{ increment-operator f 0 5 }
+    T{ increment-operator f 0 }
+    T{ increment-operator f 1 }
+    T{ increment-operator f 2 }
+    T{ increment-operator f 3 }
+    T{ increment-operator f 4 }
+    T{ increment-operator f 5 }
 } }
 [
-    { T{ increment-operator f 0 1 } }
-    T{ increment-operator f 0 4 }
+    { } <increment-operator> prefix
+    <increment-operator> 5 >>times
     apply
 ]
 unit-test
 
-{ { T{ increment-operator f 1 4 } 1 } }
+{ { T{ increment-operator f 4 } 1 } }
 [ { 1 2 3 4 5 } <increment-operator> search-operator ]
 unit-test
 
 { { 3 3 3 4 5 3 3 3 6 7 3 3 3 } }
 [
     { 3 4 5 6 7 }
-    T{ step-operator f 1 3 T{ copy-operator f 1 2 } 2 }
+    <step-operator> 3 >>times 2 >>gap
+    <copy-operator> 2 >>times >>operator
     apply
 ]
 unit-test
@@ -65,7 +72,18 @@ unit-test
 { { 3 4 5 6 3 7 8 9 10 3 3 3 } }
 [
     { 3 3 3 3 3 }
-    T{ step-operator f 1 2 T{ increment-operator f 1 3 } 1 }
+    <step-operator> 2 >>times 1 >>gap
+    <increment-operator> 3 >>times >>operator
     apply
 ]
+unit-test
+
+{ 4 }
+[ 10 extract-cost ] unit-test
+
+{ 1 }
+[ <copy-operator> extract-cost ] unit-test
+
+{ 5 }
+[ { 1 } <increment-operator> prefix 7 prefix complexity ]
 unit-test
