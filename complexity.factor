@@ -9,9 +9,14 @@ USING:
     summary
     classes
     namespaces
+    continuations
+    prettyprint
     ;
 
 SYMBOL: fail*
+
+ERROR: failure ;
+M: failure summary drop "No more alternatives" ;
 
 : fail ( -- * )
     fail* get [ failure ] or
@@ -152,24 +157,27 @@ TUPLE: increment-operator < operator ;
         decrement-times (increment-operator-apply)
     ] if ;
 
+: -(increment-operator-apply-once) ( obj -- obj' )
+    dup operator instance?
+    [ decrement-times ]
+    [ 1 - ]
+    if ;
+
+! eg T{ increment-operator f 4 } 5 => 1
+: find-seed-increment-operator ( op obj -- obj' )
+    swap times>> - ;
+
 M: increment-operator apply
     { } -rot (increment-operator-apply) drop append ;
     
 M: increment-operator (search-operator)
-    swap dup 1 tail empty?
-    [ swap ]
+    [ dup 1 tail empty? ] dip swap
+    [ ]
     [
-        reverse dup 
-        [ first ] 
-        [ 
-            second
-            dup operator instance?
-            [ increment-times ]
-            [ 1 + ]
-            if
-        ] bi =
+        swap dup [ first ] 
+        [ second -(increment-operator-apply-once) ] bi =
         [
-            1 tail reverse swap
+            1 tail swap
             increment-times
             (search-operator)
         ]
@@ -177,7 +185,10 @@ M: increment-operator (search-operator)
     ] if ;
 
 M: increment-operator search-operator
-    (search-operator) prefix ;
+    (search-operator)
+    dup rot unclip swap
+    [ find-seed-increment-operator ] dip swap prefix
+    swap prefix ;
 
 TUPLE: step-operator < operator operator gap ;
 
@@ -222,13 +233,10 @@ M: step-operator apply
 ! Try a list of operator on a sequence and keep the first
 ! efficient
 : which-operator ( operator-list list -- result )
-        swap [ search-operator ] 2map
-        { T{ operator f 0 } }
-        [
-            [ dup first times>> ] bi@ rot <
-            [ [ drop ] dip ]
-            [ drop ] if
-        ] reduce ;
+    [ swap search-operator ] curry map 
+    amb 
+    dup .
+dup first times>> 0 = [ fail ] [ reset ] if ;
 
 : (iter-compress) ( list rest -- list' rest' )
     dup empty?

@@ -60,6 +60,10 @@ unit-test
 [ { 1 2 3 4 5 } <increment-operator> search-operator ]
 unit-test
 
+{ { T{ increment-operator f 4 } 1 5 } }
+[ { 1 2 3 4 5 5 } <increment-operator> search-operator ]
+unit-test
+
 { { 3 3 3 4 5 3 3 3 6 7 3 3 3 } }
 [
     { 3 4 5 6 7 }
@@ -95,9 +99,16 @@ unit-test
     which-operator
 ] unit-test
 
-{ { T{ increment-operator f 4 } 1 6 7 8 } }
+{ { T{ increment-operator f 4 } 1 5 5 5 } }
 [
     { } <copy-operator> suffix <increment-operator> suffix
-    { 1 2 3 4 5 6 7 8 }
+    { 1 2 3 4 5 5 5 5 }
+    which-operator
+] unit-test
+
+{ { 1 3 } }
+[
+    { } <copy-operator> suffix <increment-operator> suffix
+    { 1 3 }
     which-operator
 ] unit-test
