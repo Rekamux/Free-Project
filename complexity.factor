@@ -11,6 +11,39 @@ USING:
     namespaces
     ;
 
+SYMBOL: fail*
+
+: fail ( -- * )
+    fail* get [ failure ] or
+    call( -- * ) ;
+
+: reset ( -- )
+    f fail* set ;
+
+: set-fail ( quot: ( -- * ) -- )
+    fail* get
+    [ fail* set call ] 2curry
+    fail* set ;
+
+: amb ( seq -- x )
+    dup empty? [
+        fail
+    ] [
+        [
+            unclip
+            [
+                [ amb swap continue-with ]
+                2curry set-fail
+            ] dip
+        ] curry callcc1
+    ] if ;
+
+: bag-of ( quot: ( -- x ) -- seq )
+    [ V{ } clone ] dip
+    [ call( -- x ) swap push fail ] curry
+    [ ] bi-curry
+    [ { t f } amb ] 2dip if ;
+
 TUPLE: operator times ;
 
 GENERIC: cost>> ( operator -- cost )
@@ -186,10 +219,10 @@ M: step-operator apply
     (step-operator-apply)
     drop append swap drop ;
 
-! Try a list of operator on a sequence and keep the most
-! efficient one
+! Try a list of operator on a sequence and keep the first
+! efficient
 : which-operator ( operator-list list -- result )
-        [ search-operator ] curry map
+        swap [ search-operator ] 2map
         { T{ operator f 0 } }
         [
             [ dup first times>> ] bi@ rot <

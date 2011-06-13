@@ -87,3 +87,17 @@ unit-test
 { 5 }
 [ { 1 } <increment-operator> prefix 7 prefix complexity ]
 unit-test
+
+{ { T{ copy-operator f 4 } 1 2 3 4 } }
+[
+    { } <copy-operator> suffix <increment-operator> suffix
+    { 1 1 1 1 1 2 3 4 }
+    which-operator
+] unit-test
+
+{ { T{ increment-operator f 4 } 1 6 7 8 } }
+[
+    { } <copy-operator> suffix <increment-operator> suffix
+    { 1 2 3 4 5 6 7 8 }
+    which-operator
+] unit-test
