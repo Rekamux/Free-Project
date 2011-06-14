@@ -56,6 +56,18 @@ unit-test
 ]
 unit-test
 
+{ {
+    T{ increment-operator f 5 }
+    T{ increment-operator f 0 }
+} }
+[
+    { } <increment-operator> prefix
+    <increment-operator> 5 >>times
+    apply
+    <increment-operator> search-operator
+]
+unit-test
+
 { { T{ increment-operator f 4 } 1 } }
 [ { 1 2 3 4 5 } <increment-operator> search-operator ]
 unit-test
@@ -112,3 +124,11 @@ unit-test
     { 1 3 }
     which-operator
 ] unit-test
+
+{ {
+    T{ increment-operator f 2 }
+    0
+    T{ copy-operator f 1 }
+    2
+} }
+[ { 0 1 2 2 2 } iter-compress ] unit-test
