@@ -3,6 +3,8 @@ USING:
     complexity
     accessors
     sequences
+    kernel
+    prettyprint
     ;
 
 { 4 }
@@ -146,4 +148,10 @@ unit-test
     { 1 2 T{ operator f f } 3 4 5
     T{ operator f f } 6 T{ operator f f } }
     count-operators
+] unit-test
+
+{ t }
+[ 
+    { 1 2 3 4 5 6 6 6 6 6 6 6 7 8 9 10 11 12 }
+    dup compress decompress dup . =
 ] unit-test

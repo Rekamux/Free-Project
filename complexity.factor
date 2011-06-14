@@ -5,7 +5,7 @@ USING:
     sequences
     accessors
     classes
-    prettyprint
+    prettyprint io
     complexity.tools
     ;
 
@@ -179,7 +179,7 @@ M: increment-operator apply
     ]
     when ;
 
-! Step-ooperator's apply version
+! Step-operator's apply version
 M: step-operator apply
     dup operator>> increment-times drop
     [ unclip { } swap prefix swap { } swap ] dip
@@ -306,3 +306,18 @@ M: increment-operator search-operator
         unclip [ count-operators ] dip
         operator instance? [ 1 + ] when
     ] if-empty ;
+
+! Decompress all operators (recursive version)
+: (decompress) ( list rest -- decompressed rest' )
+    dup empty?
+    [ ]
+    [
+        unclip dup operator instance?
+        [ apply ]
+        [ swap [ suffix ] dip ] if
+        (decompress)
+    ] if ;
+
+! Decompress all operators
+: decompress ( list -- decompressed )
+    { } swap (decompress) drop ;
