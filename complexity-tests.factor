@@ -132,3 +132,18 @@ unit-test
     2
 } }
 [ { 0 1 2 2 2 } iter-compress ] unit-test
+
+{ {
+    T{ increment-operator f 2 }
+    0
+    T{ copy-operator f 1 }
+    2
+} }
+[ { 0 1 2 2 2 } compress ] unit-test
+
+{ 3 }
+[
+    { 1 2 T{ operator f f } 3 4 5
+    T{ operator f f } 6 T{ operator f f } }
+    count-operators
+] unit-test

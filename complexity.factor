@@ -3,65 +3,11 @@ USING:
     kernel
     math
     sequences
-    sequences.generalizations
-    generalizations
     accessors
-    summary
     classes
-    namespaces
-    continuations
     prettyprint
+    complexity.tools
     ;
-
-! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!               CONTINUATIONS             !
-! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-! Used to store next failure action
-SYMBOL: fail*
-
-! Error definition
-ERROR: failure ;
-
-! In case of final failure
-M: failure summary drop "No more alternatives" ;
-
-! What to do in case of failure
-: fail ( -- * )
-    fail* get [ failure ] or
-    call( -- * ) ;
-
-! Failure reset
-: reset ( -- )
-    f fail* set ;
-
-! Failure setter
-: set-fail ( quot: ( -- * ) -- )
-    fail* get
-    [ fail* set call ] 2curry
-    fail* set ;
-
-! Try all elements of a sequence and tries the next one in
-! case of failure
-: amb ( seq -- x )
-    dup empty? [
-        fail
-    ] [
-        [
-            unclip
-            [
-                [ amb swap continue-with ]
-                2curry set-fail
-            ] dip
-        ] curry callcc1
-    ] if ;
-
-! Try all alternatives of a quotation
-: bag-of ( quot: ( -- x ) -- seq )
-    [ V{ } clone ] dip
-    [ call( -- x ) swap push fail ] curry
-    [ ] bi-curry
-    [ { t f } amb ] 2dip if ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !             OPERATORS                    !
@@ -111,6 +57,8 @@ TUPLE: step-operator < operator operator gap ;
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !             COMPLEXITY                    !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+DEFER: extract-cost
 
 ! Compute an operator's cost
 GENERIC: cost>> ( operator -- cost )
@@ -317,7 +265,6 @@ M: increment-operator search-operator
     { t f } amb
     [ [ swap search-operator ] curry map 
     amb 
-    dup .
     dup first times>> 0 =
     [ fail ]
     [ reset ] if ] [ [ drop ] dip ] if ;
@@ -340,29 +287,22 @@ M: increment-operator search-operator
 : iter-compress ( list -- list' )
     { } swap (iter-compress) drop ;
 
-! Used to save current compressed list
-SYMBOL: current-result
-
-! Used to save current compression cost
-SYMBOL: current-cost
-
-! Compress current-result's list as far as its cost doesn't
-! exceed current one (recursive version)
-: (compress) ( -- )
-    current-result get
-    iter-compress
-    dup extract-cost current-cost get <
-    [
-        [ extract-cost current-cost swap set ]
-        [ current-result swap set ] bi
-        (compress)
-    ]
-    [ drop ] if ; 
-
 ! Compress current-result's list as far as its cost doesn't
 ! exceed current one
-: compress ( list -- result )
-    [ extract-cost current-cost swap set ]
-    [ current-result swap set ]
-    bi
-    (compress) current-cost get ;
+: compress ( list -- compressed )
+    [ dup clone iter-compress dup complexity ]
+    [ complexity ] bi <
+    [ [ drop ] dip compress ]
+    [ drop ] if ; 
+
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!               LIST EXTENSION                   !
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Count operators in a list
+: count-operators ( list -- count )
+    [ 0 ]
+    [
+        unclip [ count-operators ] dip
+        operator instance? [ 1 + ] when
+    ] if-empty ;
