@@ -250,10 +250,23 @@ M: increment-operator (search-operator)
 
 ! Step-operator's searcher with a gap of 1
 
+! Split the list using that gap
+: (step-operator-reduce)
+( left right undone -- left' right' undone' )
+    dup empty?
+    [ ]
+    [
+        unclip -rot [ suffix ] 2dip
+        dup empty? [ ]
+        [ unclip swap [ suffix ] dip (step-operator-reduce) ]
+        if
+    ] if ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !                 SEARCH                   !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+DEFER: which-operator
 
 ! Same as above in a non-recursive version
 GENERIC: search-operator ( list operator -- compressed )
@@ -269,9 +282,41 @@ M: increment-operator search-operator
     [ find-seed-increment-operator ] dip swap prefix
     swap prefix ;
 
+! Search suitable operator for both sides of the list
+M: step-operator search-operator
+    [
+        dup [ { } { } ] dip
+        (step-operator-reduce) drop
+        [ 
+            { } <copy-operator> prefix
+            <increment-operator> suffix
+            swap which-operator
+        ] bi@
+    ] dip
+    rot dup first operator instance?
+    [
+        unclip [ swap ] dip >>operator
+        [ swap dup length ] dip swap >>times
+        1 >>gap
+        [ append ] dip prefix
+        [ drop ] dip
+    ]
+    [ 3drop ] if ;
+
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !                  COMPRESSION                    !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Try a list of operator on a sequence and keep the first
+! efficient or return original list if no-one found
+: which-operator ( operator-list list -- result )
+    { t f } amb
+    [
+        [ swap search-operator ] curry map
+        amb
+        dup [ first times>> 0 > ] [ length 2 = ] bi and
+        [ reset ] [ fail ] if 
+    ] [ [ drop ] dip ] if ;
 
 ! Search once for an operator (recursive version)
 : (iter-compress) ( isfirst op list rest -- f op' list' rest' )
@@ -315,12 +360,15 @@ M: increment-operator search-operator
 
 ! Decompress all operators (recursive version)
 : (decompress) ( list rest -- decompressed rest' )
-    dup empty?
+    dup length 2 <
     [ ]
     [
-        unclip dup operator instance?
+        unclip-last { } swap prefix
+        [ unclip-last ] dip swap
+        dup operator instance?
         [ apply ]
-        [ swap [ suffix ] dip ] if
+        [ prefix ] if
+        swap [ swap append ] dip 
         (decompress)
     ] if ;
 
