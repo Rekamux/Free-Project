@@ -7,6 +7,7 @@ USING:
     classes
     prettyprint io
     complexity.tools
+    combinators
     ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -31,8 +32,7 @@ TUPLE: step-operator < operator operator gap ;
 
 ! Construct a non-effective copy-operator
 : <copy-operator> ( -- copy-operator )
-    copy-operator new 0 >>times
-    ;
+    copy-operator new 0 >>times ;
 
 ! Construct a non-effective increment-operator
 : <increment-operator> ( -- increment-operator )
@@ -41,6 +41,14 @@ TUPLE: step-operator < operator operator gap ;
 ! Construct a non-effective step-operator
 : <step-operator> ( -- step-operator )
     step-operator new 0 >>times 0 >>operator 0 >>gap ;
+
+! Construct given operator
+: construct ( operator -- instance )
+    {
+    { step-operator [ <step-operator> ] }
+    { copy-operator [ <copy-operator> ] }
+    { increment-operator [ <increment-operator> ] }
+    } case ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !           TIMES SETTERS                 !
@@ -181,10 +189,13 @@ M: increment-operator apply
 
 ! Step-operator's apply version
 M: step-operator apply
+    dup times>> 0 = 
+    [ drop ]
+    [
     dup operator>> increment-times drop
     [ unclip { } swap prefix swap { } swap ] dip
     (step-operator-apply)
-    drop append swap drop ;
+    drop append swap drop ] if ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !                SEARCH (RECURSIVE)               !
@@ -237,6 +248,9 @@ M: increment-operator (search-operator)
         [ swap ] if
     ] if ;
 
+! Step-operator's searcher with a gap of 1
+
+
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !                 SEARCH                   !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -259,41 +273,37 @@ M: increment-operator search-operator
 !                  COMPRESSION                    !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-! Try a list of operator on a sequence and keep the first
-! efficient or return original list if no-one found
-: which-operator ( operator-list list -- result )
-    { t f } amb
-    [ [ swap search-operator ] curry map 
-    amb 
-    dup first times>> 0 =
-    [ fail ]
-    [ reset ] if ] [ [ drop ] dip ] if ;
-
-! Search once on a list for operators (recursive version)
-: (iter-compress) ( list rest -- list' rest' )
+! Search once for an operator (recursive version)
+: (iter-compress) ( isfirst op list rest -- f op' list' rest' )
     dup empty?
     [ ]
     [
-        { } <copy-operator> prefix <increment-operator> prefix
-        swap which-operator
-        dup first operator instance?
-        [ 2 cut [ append ] dip ]
-        [ unclip swap [ suffix ] dip ] if
+        [ dup ] 2dip rot clone search-operator
+        dup first times>> 0 = [ [ rot ] dip swap not ] dip and
+        [ fail ]
+        [ 2 cut [ append ] dip ] if
+        f swap [ -rot ] dip
         (iter-compress)
     ]
     if ;
 
 ! Search once on a list for operators
 : iter-compress ( list -- list' )
-    { } swap (iter-compress) drop ;
+    { } swap
+    { } copy-operator prefix increment-operator prefix
+    amb construct
+    -rot t swap [ -rot ] dip
+    (iter-compress) drop [ 2drop ] dip ;
 
 ! Compress current-result's list as far as its cost doesn't
 ! exceed current one
 : compress ( list -- compressed )
+    { t f } amb
+    [
     [ dup clone iter-compress dup complexity ]
     [ complexity ] bi <
     [ [ drop ] dip compress ]
-    [ drop ] if ; 
+    [ drop ] if ] when ; 
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !               LIST EXTENSION                   !
@@ -301,11 +311,7 @@ M: increment-operator search-operator
 
 ! Count operators in a list
 : count-operators ( list -- count )
-    [ 0 ]
-    [
-        unclip [ count-operators ] dip
-        operator instance? [ 1 + ] when
-    ] if-empty ;
+    0 [ operator instance? [ 1 + ] when ] reduce ;
 
 ! Decompress all operators (recursive version)
 : (decompress) ( list rest -- decompressed rest' )

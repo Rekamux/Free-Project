@@ -1,6 +1,7 @@
 USING:
     tools.test
     complexity
+    complexity.tools
     accessors
     sequences
     kernel
@@ -106,42 +107,14 @@ unit-test
 [ { 1 } <increment-operator> prefix 7 prefix complexity ]
 unit-test
 
-{ { T{ copy-operator f 4 } 1 2 3 4 } }
-[
-    { } <copy-operator> suffix <increment-operator> suffix
-    { 1 1 1 1 1 2 3 4 }
-    which-operator
-] unit-test
-
-{ { T{ increment-operator f 4 } 1 5 5 5 } }
-[
-    { } <copy-operator> suffix <increment-operator> suffix
-    { 1 2 3 4 5 5 5 5 }
-    which-operator
-] unit-test
-
-{ { 1 3 } }
-[
-    { } <copy-operator> suffix <increment-operator> suffix
-    { 1 3 }
-    which-operator
-] unit-test
-
 { {
     T{ increment-operator f 2 }
     0
-    T{ copy-operator f 1 }
-    2
 } }
-[ { 0 1 2 2 2 } iter-compress ] unit-test
+[ { 0 1 2 } iter-compress ] unit-test
 
-{ {
-    T{ increment-operator f 2 }
-    0
-    T{ copy-operator f 1 }
-    2
-} }
-[ { 0 1 2 2 2 } compress ] unit-test
+{ { 0 1 2 2 2 } }
+[ reset { 0 1 2 2 2 } { t f } amb [ compress ] when ] unit-test
 
 { 3 }
 [
@@ -152,6 +125,6 @@ unit-test
 
 { t }
 [ 
-    { 1 2 3 4 5 6 6 6 6 6 6 6 7 8 9 10 11 12 }
-    dup compress decompress dup . =
+    { 1 2 2 3 3 3 4 4 4 4 }
+    dup compress dup . decompress =
 ] unit-test
