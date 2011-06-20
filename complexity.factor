@@ -309,33 +309,30 @@ SYMBOL: NONE
 ! Compress current-result's list as far as its cost doesn't
 ! exceed current one
 : compress ( list -- compressed )
-    dup .
     { t f } amb
     [ [ dup clone iter-compress dup cost>> ] [ cost>> ] bi <
     [ [ drop ] dip compress ] [ fail ] if ] when ; 
 
-! ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! !               LIST EXTENSION                   !
-! ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! 
-! ! Count operators in a list
-! : count-operators ( list -- count )
-!     0 [ operator instance? [ 1 + ] when ] reduce ;
-! 
-! ! Decompress all operators (recursive version)
-! : (decompress) ( list rest -- decompressed rest' )
-!     dup length 2 <
-!     [ ]
-!     [
-!         unclip-last { } swap prefix
-!         [ unclip-last ] dip swap
-!         dup operator instance?
-!         [ apply ]
-!         [ prefix ] if
-!         swap [ swap append ] dip 
-!         (decompress)
-!     ] if ;
-! 
-! ! Decompress all operators
-! : decompress ( list -- decompressed )
-!     { } swap (decompress) drop ;
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!               LIST EXTENSION                   !
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Count operators in a list
+: count-operators ( list -- count )
+    0 [ operator instance? [ 1 + ] when ] reduce ;
+
+! Return a list containingan operator decompression or a single
+! digit
+: large-apply ( op-or-dig -- compressed )
+    dup operator instance?
+    [ apply ] [ { } swap prefix ] if ;
+
+! Decompress all operators (recursive version)
+: (decompress) ( list rest -- decompressed rest' )
+    dup empty? [ ]
+    [ unclip large-apply swap [ swap append ] dip 
+    (decompress) ] if ;
+
+! Decompress all operators
+: decompress ( list -- decompressed )
+    { } swap (decompress) drop ;
