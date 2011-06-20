@@ -88,8 +88,9 @@ GENERIC: cost>> ( operator -- cost )
 
 ! Operator cost : sum its times and argument cost.
 M: operator cost>>
-    [ times>> cost>> ]
-    [ argument>> cost>> ] bi + ;
+    dup times>> dup 0 = [ nip ]
+    [ dup 1 > [ 1 - cost>> ] [ drop 0 ] if
+    swap argument>> cost>> + ] if ;
 
 ! An increment-operator costs 2 more bits if its argument is an
 ! operator, in which case it needs to know where it applies
@@ -164,7 +165,7 @@ M: operator apply
 : argument-equals ( operator argument -- ? )
     swap argument>> = ;
 
-! Check if the first argument is identical to the operator's one
+! Check if first argument is identical to the operator's one
 : first-argument-equals ( operator list -- ? )
     dup empty? [ 2drop f ] [ first argument-equals ] if ;
 
@@ -330,9 +331,16 @@ SYMBOL: NONE
 ! Decompress all operators (recursive version)
 : (decompress) ( list rest -- decompressed rest' )
     dup empty? [ ]
-    [ unclip large-apply swap [ swap append ] dip 
+    [ unclip large-apply swap [ append ] dip 
     (decompress) ] if ;
 
 ! Decompress all operators
 : decompress ( list -- decompressed )
     { } swap (decompress) drop ;
+
+! Try to extend a list
+: extend ( list -- extended )
+    compress dup length 1 =
+    [ first dup operator instance?
+    [ increment-times { } swap prefix "extension found" print ]
+    when ] when decompress ;
