@@ -95,8 +95,8 @@ M: operator cost>>
 ! An increment-operator costs 2 more bits if its argument is an
 ! operator, in which case it needs to know where it applies
 M: increment-operator cost>>
-    [ call-next-method ] [ argument>> ] bi
-    operator instance? [ 2 + ] when ;
+    [ call-next-method ] [ how>> ] bi
+    BOTH = [ 1 + ] when ;
 
 ! Bits needed to store an integer
 M: integer cost>>
@@ -307,12 +307,28 @@ SYMBOL: NONE
     { } swap { operator increment-operator } amb -rot
     (iter-compress) drop nip ;
 
+! Return true iff all operators have 1 times (they are therefore
+! useless)
+: all-times-1? ( list -- ? )
+    t [ dup operator instance? [ times>> 1 = ]
+    [ drop t ] if and ] reduce ;
+
 ! Compress current-result's list as far as its cost doesn't
 ! exceed current one
 : compress ( list -- compressed )
     { t f } amb
-    [ [ dup clone iter-compress dup cost>> ] [ cost>> ] bi <
-    [ [ drop ] dip compress ] [ fail ] if ] when ; 
+    [
+        [ dup clone iter-compress dup cost>> ]
+        [ cost>> ] bi
+        <=
+        [ [ drop ] dip dup length
+          1 =
+          [ dup all-times-1?
+            [ fail ]
+            [ compress ] if ]
+          unless ]
+        [ fail ] if
+    ] when ; 
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !               LIST EXTENSION                   !

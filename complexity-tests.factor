@@ -16,7 +16,7 @@ unit-test
 [ <operator> 3 >>times increment-times times>> ]
 unit-test
 
-{ 9 }
+{ 8 }
 [ <operator> 8 >>times 16 >>argument cost>> ]
 unit-test
 
@@ -24,12 +24,12 @@ unit-test
 [ <increment-operator> 7 >>times 15 >>argument cost>> ]
 unit-test
 
-{ 14 }
+{ 11 }
 [ <increment-operator> 7 >>times <operator> 8 >>times 16
 >>argument >>argument cost>> ]
 unit-test
 
-{ 24 }
+{ 20 }
 [
     { }
     <increment-operator> 7 >>times
