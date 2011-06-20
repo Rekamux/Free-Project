@@ -154,7 +154,7 @@ M: operator apply
     [ [ apply-once ] [ apply ] bi append ] if ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                SEARCH (RECURSIVE)               !
+!                COPY OPERATOR SEARCH             !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ! Search if the beginning of a list suits given operator
@@ -173,85 +173,86 @@ M: operator apply
     2dup first-argument-equals
     [ 1 tail [ increment-times ] dip (search-operator) ] when ;
 
-! Return if a digit is an other's increment
-: is-increment ( before after -- ? )
-    1 - = ;
-
-! Return if both before and after are operators
-: are-operators ( before after -- ? )
-    [ operator instance? ] bi@ and ;
-
-! Return if an operator's times is another increment
-: is-times-increment ( op-before op-after -- ? )
-    [ times>> ] bi@ is-increment ;
-
-! Return if an operator's argument is another increment
-: is-argument-increment ( op-before op-after -- ? )
-    [ argument>> ] bi@ dup operator instance?
-    [ 2drop f ] [ is-increment ] if ;
-
-! Init a increment-operator using a list's first as argument
-: init-first-increment-operator
-( operator list -- operator rest )
-    dup empty? [ ] [ unclip swap [ >>argument ] dip ] if ;
-! ! Decrement a digit or an operator as much as op's times
-! ! eg T{ increment-operator f 4 } 5 => 1
-! : find-seed-increment-operator ( op obj -- obj' )
-!     dup operator instance?
-!     [ [ swap times>> - ] change-times ]
-!     [ swap times>> - ] if ;
-! 
-! ! Increment-operator's recursive search version
-! M: increment-operator (search-operator)
-!     [ dup 1 tail empty? ] dip swap
-!     [ ]
-!     [
-!         swap dup [ first ] 
-!         [ second clone -(increment-operator-apply-once) ] bi =
-!         [
-!             1 tail swap
-!             increment-times
-!             (search-operator)
-!         ]
-!         [ swap ] if
-!     ] if ;
-
-! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                 SEARCH                   !
-! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 ! Copy-operator's version of search
 : search-operator ( operator list -- compressed )
     dup empty? [ 2drop { } ] [ [ first >>argument ]
     keep (search-operator) swap prefix ] if ;
 
-! ! Increment-operator's version of search
-! M: increment-operator search-operator
-!     (search-operator)
-!     dup rot unclip swap
-!     [ find-seed-increment-operator ] dip swap prefix
-!     swap prefix ;
-! 
-! ! Search suitable operator for both sides of the list
-! M: step-operator search-operator
-!     [
-!         dup [ { } { } ] dip
-!         (step-operator-reduce) drop
-!         [ 
-!             { } <copy-operator> prefix
-!             <increment-operator> suffix
-!             swap which-operator
-!         ] bi@
-!     ] dip
-!     rot dup first operator instance?
-!     [
-!         unclip [ swap ] dip >>operator
-!         [ swap dup length ] dip swap >>times
-!         1 >>gap
-!         [ append ] dip prefix
-!         [ drop ] dip
-!     ]
-!     [ 3drop ] if ;
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!             INCREMENT OPERATOR SEARCH             !
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Return if a digit is an other's increment
+: is-increment? ( before after -- ? )
+    1 - = ;
+
+! Return if both before and after are operators
+: are-operators? ( operator after -- ? )
+    [ operator instance? ] bi@ and ;
+
+! Return if an operator's times is another increment
+: is-times-increment? ( op-before op-after -- ? )
+    [ times>> ] bi@ is-increment? ;
+
+! Return if an operator's argument is another increment
+: is-argument-increment? ( op-before op-after -- ? )
+    [ argument>> ] bi@ dup operator instance?
+    [ 2drop f ] [ is-increment? ] if ;
+
+! Init a increment-operator using a list's first as argument
+: init-first-increment-operator
+( operator list -- operator rest )
+    dup empty? [ ]
+    [ unclip swap [ >>argument increment-times ] dip ] if ;
+
+! If no way has been found
+SYMBOL: NONE
+
+! find how it comes from an operator to another
+: find-how-operators ( before after -- how )
+    [ is-times-increment? ] [ is-argument-increment? ] 2bi
+    [ [ BOTH ] [ ARGUMENT ] if ] [ [ TIMES ] [ NONE ] if ] if ;
+
+! Find how method using an argument and return if found
+: find-how ( before after -- how )
+    2dup are-operators? [ find-how-operators ]
+    [ is-increment? [ ARGUMENT ] [ NONE ] if ] if ;
+
+! Init an operator using find-how return value
+: init-how ( operator how -- operator found )
+    dup NONE = [ drop f ] [ >>how increment-times t ] if ;
+
+! Same as following but without empty check
+: init-first-how-unsafe
+( operator list -- operator rest found )
+    unclip swap
+    [ [ dup argument>> ] dip find-how init-how ] dip swap ;
+
+! Set how method using a list's first argument and return if
+! found
+: init-first-how ( operator list -- last operator rest found )
+    dup empty? [ f -rot f ]
+    [ [ nip first ] [ init-first-how-unsafe ] 2bi ] if ;
+
+! Determine how last could be incremented into list's first
+! element
+: find-list-how ( before list -- how first rest )
+    dup empty? [ 2drop NONE f { } ]
+    [ unclip swap [ [ find-how ] keep ] dip ] if ;
+
+! Recursive search of increment operator
+: (search-increment-operator)
+( operator last list -- operator last' rest )
+    find-list-how [ dup how>> ] 3dip [ = ] 2dip rot
+    [ [ increment-times ] 2dip (search-increment-operator) ]
+    when ;
+
+! Search an increment operator
+: search-increment-operator ( operator list -- compressed )
+    init-first-increment-operator init-first-how
+    [ swap ] 2dip [ (search-increment-operator) ] when
+    swap prefix swap prefix ;
+
 ! 
 ! ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! !                  COMPRESSION                    !

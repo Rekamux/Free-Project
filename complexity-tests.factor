@@ -100,6 +100,12 @@ unit-test
 { { T{ operator f 5 1 } 2 3 4 } }
 [ <operator> { 1 1 1 1 1 2 3 4 } search-operator ] unit-test
 
+{ { T{ increment-operator f 6 1 ARGUMENT } 6 } }
+[
+    <increment-operator> { 1 2 3 4 5 6 6 }
+    search-increment-operator
+] unit-test
+
 ! { {
 !     T{ increment-operator f 0 }
 !     T{ increment-operator f 1 }
