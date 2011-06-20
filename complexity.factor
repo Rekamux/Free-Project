@@ -194,10 +194,19 @@ M: operator apply
 : is-times-increment? ( op-before op-after -- ? )
     [ times>> ] bi@ is-increment? ;
 
-! Return if an operator's argument is another increment
+! Return if an operator's times is a copy
+: is-times-copy? ( op-before op-after -- ? )
+    [ times>> ] bi@ = ;
+
+! Return if an operator's argument is another's increment
 : is-argument-increment? ( op-before op-after -- ? )
     [ argument>> ] bi@ dup operator instance?
     [ 2drop f ] [ is-increment? ] if ;
+
+! Return if an operator's argument is another's copy
+: is-argument-copy? ( op-before op-after -- ? )
+    [ argument>> ] bi@ dup operator instance?
+    [ 2drop f ] [ = ] if ;
 
 ! Init a increment-operator using a list's first as argument
 : init-first-increment-operator
@@ -205,13 +214,26 @@ M: operator apply
     dup empty? [ ]
     [ unclip swap [ >>argument increment-times ] dip ] if ;
 
+! Return if an operator can be another's increment
+! transformation
+: operators-increment-possible ( before after -- ? )
+    [ [ is-times-increment? ] [ is-times-copy? ] 2bi or ]
+    [ [ is-argument-increment? ] [ is-argument-copy? ] 2bi or ]
+    2bi and ;
+
 ! If no way has been found
 SYMBOL: NONE
 
-! find how it comes from an operator to another
-: find-how-operators ( before after -- how )
+! Find how it comes from an operator to another when it is
+! possible
+: find-how-if-possible ( before after -- how )
     [ is-times-increment? ] [ is-argument-increment? ] 2bi
     [ [ BOTH ] [ ARGUMENT ] if ] [ [ TIMES ] [ NONE ] if ] if ;
+
+! find how it comes from an operator to another
+: find-how-operators ( before after -- how )
+    [ find-how-if-possible ] [ operators-increment-possible ]
+    2bi [ drop NONE ] unless ;
 
 ! Find how method using an argument and return if found
 : find-how ( before after -- how )
@@ -231,13 +253,20 @@ SYMBOL: NONE
 ! Set how method using a list's first argument and return if
 ! found
 : init-first-how ( operator list -- last operator rest found )
-    dup empty? [ f -rot f ]
+    dup empty? [ <operator> -rot f ]
     [ [ nip first ] [ init-first-how-unsafe ] 2bi ] if ;
+
+! Treat init-first-how return considering whereas it is because
+! list was empty or because increment wasn't possible
+: treat-init-first-how-negative
+( last operator rest -- compressed )
+    rot dup <operator> = [ drop swap prefix ]
+    [ prefix swap prefix ] if ;
 
 ! Determine how last could be incremented into list's first
 ! element
 : find-list-how ( before list -- how first rest )
-    dup empty? [ 2drop NONE f { } ]
+    dup empty? [ 2drop NONE <operator> { } ]
     [ unclip swap [ [ find-how ] keep ] dip ] if ;
 
 ! Recursive search of increment operator
@@ -250,57 +279,41 @@ SYMBOL: NONE
 ! Search an increment operator
 : search-increment-operator ( operator list -- compressed )
     init-first-increment-operator init-first-how
-    [ swap ] 2dip [ (search-increment-operator) ] when
-    swap prefix swap prefix ;
+    [ [ swap ] dip (search-increment-operator)
+    swap dup <operator> = [ drop ] [ prefix ] if swap prefix ]
+    [ treat-init-first-how-negative ] if ;
 
-! 
-! ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! !                  COMPRESSION                    !
-! ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! 
-! ! Try a list of operator on a sequence and keep the first
-! ! efficient or return original list if no-one found
-! : which-operator ( operator-list list -- result )
-!     { t f } amb
-!     [
-!         [ swap search-operator ] curry map
-!         amb
-!         dup [ first times>> 0 > ] [ length 2 = ] bi and
-!         [ reset ] [ fail ] if 
-!     ] [ [ drop ] dip ] if ;
-! 
-! ! Search once for an operator (recursive version)
-! : (iter-compress) ( isfirst op list rest -- f op' list' rest' )
-!     dup empty?
-!     [ ]
-!     [
-!         [ dup ] 2dip rot clone search-operator
-!         dup first times>> 0 = [ [ rot ] dip swap not ] dip and
-!         [ fail ]
-!         [ 2 cut [ append ] dip ] if
-!         f swap [ -rot ] dip
-!         (iter-compress)
-!     ]
-!     if ;
-! 
-! ! Search once on a list for operators
-! : iter-compress ( list -- list' )
-!     { } swap
-!     { } copy-operator prefix increment-operator prefix
-!     amb construct
-!     -rot t swap [ -rot ] dip
-!     (iter-compress) drop [ 2drop ] dip ;
-! 
-! ! Compress current-result's list as far as its cost doesn't
-! ! exceed current one
-! : compress ( list -- compressed )
-!     { t f } amb
-!     [
-!     [ dup clone iter-compress dup complexity ]
-!     [ complexity ] bi <
-!     [ [ drop ] dip compress ]
-!     [ drop ] if ] when ; 
-! 
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!                  COMPRESSION                    !
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Search given operator into a list
+: search-given-operator ( operator list -- compressed )
+    swap {
+      { operator [ <operator> swap search-operator ] }
+      { increment-operator 
+      [ <increment-operator> swap search-increment-operator ] }
+    } case ;
+
+! Search once for an operator (recursive version)
+: (iter-compress) ( op list rest -- op' list' rest' )
+    dup empty? [ ]
+    [ [ dup ] 2dip [ swap ] dip search-given-operator
+    unclip swap [ suffix ] dip (iter-compress) ] if ;
+
+! Search once on a list for operators
+: iter-compress ( list -- list' )
+    { } swap { operator increment-operator } amb -rot
+    (iter-compress) drop nip ;
+
+! Compress current-result's list as far as its cost doesn't
+! exceed current one
+: compress ( list -- compressed )
+    dup .
+    { t f } amb
+    [ [ dup clone iter-compress dup cost>> ] [ cost>> ] bi <
+    [ [ drop ] dip compress ] [ fail ] if ] when ; 
+
 ! ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! !               LIST EXTENSION                   !
 ! ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
