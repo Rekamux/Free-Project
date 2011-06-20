@@ -307,27 +307,37 @@ SYMBOL: NONE
     { } swap { operator increment-operator } amb -rot
     (iter-compress) drop nip ;
 
-! Return true iff all operators have 1 times (they are therefore
-! useless)
+! Return true iff all operators have 1 times (they are
+! therefore useless)
 : all-times-1? ( list -- ? )
     t [ dup operator instance? [ times>> 1 = ]
     [ drop t ] if and ] reduce ;
+
+! Return true iff compressed cost is less or equal than
+! previous one
+: is-compressed-better? ( list -- list compressed ? )
+    [ dup clone iter-compress dup cost>> ]
+    [ cost>> ] bi
+    <= ;
+
+DEFER: compress
+
+! Return compressed list if all operators are not useless
+! Fail elsewise
+: compress-if-useful ( list -- compressed )
+    dup all-times-1?
+    [ fail ]
+    [ compress ] if ;
+
+! Treat lists if compressed is better
+: treat-compressed ( list compressed -- compressed' )
+    [ drop ] dip dup length 1 = [ compress-if-useful ] unless ;
 
 ! Compress current-result's list as far as its cost doesn't
 ! exceed current one
 : compress ( list -- compressed )
     { t f } amb
-    [
-        [ dup clone iter-compress dup cost>> ]
-        [ cost>> ] bi
-        <=
-        [ [ drop ] dip dup length
-          1 =
-          [ dup all-times-1?
-            [ fail ]
-            [ compress ] if ]
-          unless ]
-        [ fail ] if
+    [ is-compressed-better? [ treat-compressed ] [ fail ] if
     ] when ; 
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
