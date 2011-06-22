@@ -8,7 +8,40 @@ USING:
     prettyprint io
     complexity.tools
     combinators
+    namespaces
+    generalizations
     ;
+
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!         LAST USED LIST                  !
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+SYMBOL: short-memory
+
+! Short memory initialization
+: resetMemory ( -- )
+    [ ] short-memory set ;
+
+! Place an object on the top of the list
+: use ( obj -- obj )
+    3 dupn short-memory get remove
+    swap prefix short-memory set ;
+
+! Place 2 objects on the top of the list
+: 2use ( obj1 obj2 -- obj1 obj2 )
+    [ use ] dip use ;
+
+! Place second object on the top of the list
+: used ( obj garb -- obj garb )
+    [ use ] dip ;
+
+! Return an element's cost
+: cost>> ( obj -- cost )
+    short-memory get index
+    ! TODO remove when applied !!!!!
+    dup [ "Object not learned !" print ] unless
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    dup 0 = [ ] [ log2 1 + ] if ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !             OPERATORS                    !
@@ -79,34 +112,6 @@ TUPLE: increment-operator < operator how ;
     [ argument>> operator instance? [ [ drop TIMES ] dip ] when
     ] [ drop [ drop ARGUMENT ] dip ] if swap >>how ;
 
-! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!             COMPLEXITY                    !
-! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-! Compute an operator's cost
-GENERIC: cost>> ( operator -- cost )
-
-! Operator cost : sum its times and argument cost.
-M: operator cost>>
-    dup times>> dup 0 = [ nip ]
-    [ dup 1 > [ 1 - cost>> ] [ drop 0 ] if
-    swap argument>> cost>> + ] if ;
-
-! An increment-operator costs 2 more bits if its argument is an
-! operator, in which case it needs to know where it applies
-M: increment-operator cost>>
-    [ call-next-method ] [ how>> ] bi
-    BOTH = [ 1 + ] when ;
-
-! Bits needed to store an integer
-M: integer cost>>
-   dup 0 =
-   [ ] [ log2 1 + ] if ;
-
-! Compute the cost of a list of digits and operators
-M: sequence cost>>
-    0 [ cost>> + ] reduce ;
-
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !               APPLY ON ONE                    !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -120,6 +125,7 @@ GENERIC: apply-once ( op -- res )
 M: operator apply-once
     decrement-times argument>> clone apply ;
 
+! Increment an argument regarding how
 : increment-argument ( arg how -- arg' )
     [ [ 1 + ] ] dip
     {
@@ -146,11 +152,11 @@ GENERIC: apply ( operator -- list )
 
 ! An integer will be put in a list
 M: integer apply
-    { } swap prefix ;
+    use { } swap prefix ;
 
 ! An operator will be decompressed
 M: operator apply
-    dup times>> 0 =
+    use dup times>> 0 =
     [ drop { } ]
     [ [ apply-once ] [ apply ] bi append ] if ;
 
@@ -163,7 +169,7 @@ M: operator apply
 
 ! Return if a argument is identical to operator's one
 : argument-equals ( operator argument -- ? )
-    swap argument>> = ;
+    2use swap argument>> = ;
 
 ! Check if first argument is identical to the operator's one
 : first-argument-equals ( operator list -- ? )
@@ -185,7 +191,7 @@ M: operator apply
 
 ! Return if a digit is an other's increment
 : is-increment? ( before after -- ? )
-    1 - = ;
+    2use 1 - = ;
 
 ! Return if both before and after are operators
 : are-operators? ( operator after -- ? )
@@ -310,8 +316,8 @@ SYMBOL: NONE
 ! Return true iff all operators have 1 times (they are
 ! therefore useless)
 : all-times-1? ( list -- ? )
-    t [ dup operator instance? [ times>> 1 = ]
-    [ drop t ] if and ] reduce ;
+    [ dup operator instance? [ times>> 1 = ] [ drop t ] if ]
+    all? ;
 
 ! Return true iff compressed cost is less or equal than
 ! previous one
@@ -331,7 +337,7 @@ DEFER: compress
 
 ! Treat lists if compressed is better
 : treat-compressed ( list compressed -- compressed' )
-    [ drop ] dip dup length 1 = [ compress-if-useful ] unless ;
+    nip dup length 1 = [ compress-if-useful ] unless ;
 
 ! Compress current-result's list as far as its cost doesn't
 ! exceed current one
@@ -368,5 +374,5 @@ DEFER: compress
 : extend ( list -- extended )
     compress dup length 1 =
     [ first dup operator instance?
-    [ increment-times { } swap prefix "extension found" print ]
+    [ increment-times { } swap prefix ]
     when ] when decompress ;

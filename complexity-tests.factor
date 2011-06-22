@@ -8,36 +8,6 @@ USING:
     prettyprint
     ;
 
-{ 4 }
-[ <operator> 5 >>times decrement-times times>> ]
-unit-test
-
-{ 4 }
-[ <operator> 3 >>times increment-times times>> ]
-unit-test
-
-{ 8 }
-[ <operator> 8 >>times 16 >>argument cost>> ]
-unit-test
-
-{ 7 }
-[ <increment-operator> 7 >>times 15 >>argument cost>> ]
-unit-test
-
-{ 11 }
-[ <increment-operator> 7 >>times <operator> 8 >>times 16
->>argument >>argument cost>> ]
-unit-test
-
-{ 20 }
-[
-    { }
-    <increment-operator> 7 >>times
-    <operator> 8 >>times 16 >>argument
-    dup clone [ >>argument prefix ] dip
-    prefix 1 prefix cost>>
-] unit-test
-
 { ARGUMENT }
 [
     <increment-operator> 5 >>argument BOTH set-how how>>
@@ -122,3 +92,6 @@ unit-test
 
 { t }
 [ { 1 2 2 3 3 3 } dup compress decompress = ] unit-test
+
+{ { 1 2 2 3 3 3 } }
+[ { 1 2 2 } extend ] unit-test
