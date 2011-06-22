@@ -12,6 +12,25 @@ USING:
     generalizations
     ;
 
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!             OPERATORS                    !
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Apply only on times
+SYMBOL: TIMES
+
+! Apply only on argument
+SYMBOL: ARGUMENT
+
+! Apply on both
+SYMBOL: BOTH
+
+! An 1-unary copy operator, usable on digits or operators
+TUPLE: operator times argument ;
+
+! Increment a digits or an operator using specified field
+TUPLE: increment-operator < operator how ;
+
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !         LAST USED LIST                  !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -35,32 +54,22 @@ SYMBOL: short-memory
 : used ( obj garb -- obj garb )
     [ use ] dip ;
 
+GENERIC: cost>> ( arg -- cost )
+
+M: sequence cost>>
+   0 [ cost>> + ] reduce ; 
+
 ! Return an element's cost
-: cost>> ( obj -- cost )
-    short-memory get index
-    ! TODO remove when applied !!!!!
-    dup [ "Object not learned !" print ] unless
-    ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    dup 0 = [ ] [ log2 1 + ] if ;
+: generic-cost>> ( obj -- cost )
+    short-memory get index dup
+    [ "Object not learned !" print drop short-memory get
+    length ] unless dup 0 = [ ] [ log2 1 + ] if ;
 
-! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!             OPERATORS                    !
-! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+M: integer cost>>
+    generic-cost>> ;
 
-! Apply only on times
-SYMBOL: TIMES
-
-! Apply only on argument
-SYMBOL: ARGUMENT
-
-! Apply on both
-SYMBOL: BOTH
-
-! An 1-unary copy operator, usable on digits or operators
-TUPLE: operator times argument ;
-
-! Increment a digits or an operator using specified field
-TUPLE: increment-operator < operator how ;
+M: operator cost>>
+    generic-cost>> ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !              CONSTRUCTORS               !
@@ -84,7 +93,7 @@ TUPLE: increment-operator < operator how ;
     {
     { operator [ <operator> ] }
     { increment-operator [ <increment-operator> ] }
-    } case ;
+    } case use ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !           TIMES SETTERS                 !
@@ -92,11 +101,11 @@ TUPLE: increment-operator < operator how ;
 
 ! Decrement an operator's times
 : decrement-times ( operator -- operator )
-    [ 1 - ] change-times ;
+    use [ 1 - ] change-times use ;
 
 ! Increment an operator's times
 : increment-times ( operator -- operator )
-    [ 1 + ] change-times ;
+    use [ 1 + ] change-times use ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !      ARGUMENT SETTER                !
@@ -108,9 +117,9 @@ TUPLE: increment-operator < operator how ;
 ! it can only apply on its times
 !   - else, it can apply on one or both
 : set-how ( inc-op how -- inc-op )
-    swap dup argument>> dup operator instance?
-    [ argument>> operator instance? [ [ drop TIMES ] dip ] when
-    ] [ drop [ drop ARGUMENT ] dip ] if swap >>how ;
+    used swap dup argument>> use dup operator instance?
+    [ argument>> use operator instance? [ [ drop TIMES ] dip ] when
+    ] [ drop [ drop ARGUMENT ] dip ] if swap >>how use ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !               APPLY ON ONE                    !
@@ -123,25 +132,25 @@ GENERIC: apply-once ( op -- res )
 
 ! Copy operator's version of apply-once
 M: operator apply-once
-    decrement-times argument>> clone apply ;
+    use decrement-times argument>> clone apply use ;
 
 ! Increment an argument regarding how
 : increment-argument ( arg how -- arg' )
-    [ [ 1 + ] ] dip
+    used [ [ 1 + ] ] dip
     {
       { ARGUMENT [ change-argument ] }
       { TIMES [ change-times ] }
       { BOTH [ [ change-argument ] [ change-times ] bi ] }
-    } case ;
+    } case use ;
 
 : increment ( increment-operator -- )
-    dup argument>> operator instance?
+    use dup argument>> operator instance?
     [ [ argument>> ] [ how>> ] bi increment-argument ]
     [ [ 1 + ] change-argument ] if drop ;
 
 ! Increment operator's version of apply-once
 M: increment-operator apply-once
-    [ call-next-method ] [ increment ] bi ;
+    use [ call-next-method ] [ increment ] bi use ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !                   APPLY                        !
@@ -158,7 +167,7 @@ M: integer apply
 M: operator apply
     use dup times>> 0 =
     [ drop { } ]
-    [ [ apply-once ] [ apply ] bi append ] if ;
+    [ [ apply-once use ] [ apply ] bi append ] if ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !                COPY OPERATOR SEARCH             !
@@ -173,16 +182,16 @@ M: operator apply
 
 ! Check if first argument is identical to the operator's one
 : first-argument-equals ( operator list -- ? )
-    dup empty? [ 2drop f ] [ first argument-equals ] if ;
+    used dup empty? [ 2drop f ] [ first argument-equals ] if ;
 
 ! Copy-operator's recursive search version
 : (search-operator) ( operator list -- operator rest )
-    2dup first-argument-equals
+    used 2dup first-argument-equals
     [ 1 tail [ increment-times ] dip (search-operator) ] when ;
 
 ! Copy-operator's version of search
 : search-operator ( operator list -- compressed )
-    dup empty? [ 2drop { } ] [ [ first >>argument ]
+    used dup empty? [ 2drop { } ] [ [ first >>argument ]
     keep (search-operator) swap prefix ] if ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -195,36 +204,36 @@ M: operator apply
 
 ! Return if both before and after are operators
 : are-operators? ( operator after -- ? )
-    [ operator instance? ] bi@ and ;
+    2use [ operator instance? ] bi@ and ;
 
 ! Return if an operator's times is another increment
 : is-times-increment? ( op-before op-after -- ? )
-    [ times>> ] bi@ is-increment? ;
+    2use [ times>> ] bi@ is-increment? ;
 
 ! Return if an operator's times is a copy
 : is-times-copy? ( op-before op-after -- ? )
-    [ times>> ] bi@ = ;
+    2use [ times>> ] bi@ = ;
 
 ! Return if an operator's argument is another's increment
 : is-argument-increment? ( op-before op-after -- ? )
-    [ argument>> ] bi@ dup operator instance?
+    2use [ argument>> ] bi@ dup operator instance?
     [ 2drop f ] [ is-increment? ] if ;
 
 ! Return if an operator's argument is another's copy
 : is-argument-copy? ( op-before op-after -- ? )
-    [ argument>> ] bi@ dup operator instance?
+    2use [ argument>> ] bi@ dup operator instance?
     [ 2drop f ] [ = ] if ;
 
 ! Init a increment-operator using a list's first as argument
 : init-first-increment-operator
 ( operator list -- operator rest )
-    dup empty? [ ]
-    [ unclip swap [ >>argument increment-times ] dip ] if ;
+    used dup empty? [ ]
+    [ unclip swap [ >>argument increment-times ] dip ] if used ;
 
 ! Return if an operator can be another's increment
 ! transformation
 : operators-increment-possible ( before after -- ? )
-    [ [ is-times-increment? ] [ is-times-copy? ] 2bi or ]
+    2use [ [ is-times-increment? ] [ is-times-copy? ] 2bi or ]
     [ [ is-argument-increment? ] [ is-argument-copy? ] 2bi or ]
     2bi and ;
 
@@ -234,58 +243,61 @@ SYMBOL: NONE
 ! Find how it comes from an operator to another when it is
 ! possible
 : find-how-if-possible ( before after -- how )
-    [ is-times-increment? ] [ is-argument-increment? ] 2bi
+    2use [ is-times-increment? ] [ is-argument-increment? ] 2bi
     [ [ BOTH ] [ ARGUMENT ] if ] [ [ TIMES ] [ NONE ] if ] if ;
 
 ! find how it comes from an operator to another
 : find-how-operators ( before after -- how )
-    [ find-how-if-possible ] [ operators-increment-possible ]
+    2use [ find-how-if-possible ] [ operators-increment-possible ]
     2bi [ drop NONE ] unless ;
 
 ! Find how method using an argument and return if found
 : find-how ( before after -- how )
-    2dup are-operators? [ find-how-operators ]
+    2use 2dup are-operators? [ find-how-operators ]
     [ is-increment? [ ARGUMENT ] [ NONE ] if ] if ;
 
 ! Init an operator using find-how return value
 : init-how ( operator how -- operator found )
-    dup NONE = [ drop f ] [ >>how increment-times t ] if ;
+    used dup NONE = [ drop f ] [ >>how increment-times t ] if
+    used ;
 
 ! Same as following but without empty check
 : init-first-how-unsafe
 ( operator list -- operator rest found )
-    unclip swap
-    [ [ dup argument>> ] dip find-how init-how ] dip swap ;
+    used unclip swap
+    [ [ dup argument>> ] dip find-how init-how ] dip swap [ used
+    ] dip ;
 
 ! Set how method using a list's first argument and return if
 ! found
 : init-first-how ( operator list -- last operator rest found )
-    dup empty? [ <operator> -rot f ]
-    [ [ nip first ] [ init-first-how-unsafe ] 2bi ] if ;
+    used dup empty? [ <operator> -rot f ]
+    [ [ nip first ] [ init-first-how-unsafe ] 2bi ] if [ 2use ]
+    2dip ;
 
 ! Treat init-first-how return considering whereas it is because
 ! list was empty or because increment wasn't possible
 : treat-init-first-how-negative
 ( last operator rest -- compressed )
-    rot dup <operator> = [ drop swap prefix ]
+    [ 2use ] dip rot dup <operator> = [ drop swap prefix ]
     [ prefix swap prefix ] if ;
 
 ! Determine how last could be incremented into list's first
 ! element
 : find-list-how ( before list -- how first rest )
-    dup empty? [ 2drop NONE <operator> { } ]
-    [ unclip swap [ [ find-how ] keep ] dip ] if ;
+    used dup empty? [ 2drop NONE <operator> { } ]
+    [ unclip swap [ [ find-how ] keep ] dip ] if used ;
 
 ! Recursive search of increment operator
 : (search-increment-operator)
 ( operator last list -- operator last' rest )
-    find-list-how [ dup how>> ] 3dip [ = ] 2dip rot
+    [ 2use ] dip find-list-how [ dup how>> ] 3dip [ = ] 2dip rot
     [ [ increment-times ] 2dip (search-increment-operator) ]
-    when ;
+    when [ 2use ] dip ;
 
 ! Search an increment operator
 : search-increment-operator ( operator list -- compressed )
-    init-first-increment-operator init-first-how
+    used init-first-increment-operator init-first-how
     [ [ swap ] dip (search-increment-operator)
     swap dup <operator> = [ drop ] [ prefix ] if swap prefix ]
     [ treat-init-first-how-negative ] if ;
@@ -296,7 +308,7 @@ SYMBOL: NONE
 
 ! Search given operator into a list
 : search-given-operator ( operator list -- compressed )
-    swap {
+    used swap {
       { operator [ <operator> swap search-operator ] }
       { increment-operator 
       [ <increment-operator> swap search-increment-operator ] }
@@ -304,9 +316,9 @@ SYMBOL: NONE
 
 ! Search once for an operator (recursive version)
 : (iter-compress) ( op list rest -- op' list' rest' )
-    dup empty? [ ]
+    [ used ] dip dup empty? [ ]
     [ [ dup ] 2dip [ swap ] dip search-given-operator
-    unclip swap [ suffix ] dip (iter-compress) ] if ;
+    unclip swap [ suffix ] dip (iter-compress) ] if [ used ] dip ;
 
 ! Search once on a list for operators
 : iter-compress ( list -- list' )
@@ -354,10 +366,10 @@ DEFER: compress
 : count-operators ( list -- count )
     0 [ operator instance? [ 1 + ] when ] reduce ;
 
-! Return a list containingan operator decompression or a single
-! digit
+! Return a list containing an operator decompression or a
+! single digit
 : large-apply ( op-or-dig -- compressed )
-    dup operator instance?
+    use dup operator instance?
     [ apply ] [ { } swap prefix ] if ;
 
 ! Decompress all operators (recursive version)
@@ -372,7 +384,8 @@ DEFER: compress
 
 ! Try to extend a list
 : extend ( list -- extended )
-    compress dup length 1 =
+    reset { t f } amb
+    [ compress dup length 1 =
     [ first dup operator instance?
-    [ increment-times { } swap prefix ]
-    when ] when decompress ;
+    [ increment-times { } swap prefix ] [ fail ] if ] [ fail ]
+    if decompress ] [ ] if ;
