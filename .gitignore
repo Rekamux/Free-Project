@@ -1,0 +1,5 @@
+# VIM backup files
+*~
+
+# pdflatex generated files
+*.aux *.pdf *.toc *.log
