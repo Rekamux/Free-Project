@@ -2,6 +2,8 @@ IN: complexity
 USING:
     kernel
     math
+    math.ranges
+    arrays
     sequences
     accessors
     classes
@@ -35,16 +37,32 @@ TUPLE: increment-operator < operator how ;
 !         LAST USED LIST                  !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-SYMBOL: short-memory
+! Last used operators
+SYMBOL: operators-LUL
+
+! Last used digits
+SYMBOL: digits-LUL
 
 ! Short memory initialization
 : resetMemory ( -- )
-    [ ] short-memory set ;
+    [ ] clone operators-LUL set
+    [ ] clone digits-LUL set ;
 
 ! Place an object on the top of the list
-: use ( obj -- obj )
-    3 dupn short-memory get remove
-    swap prefix short-memory set ;
+GENERIC: use ( obj -- obj )
+
+! Use of digits
+M: integer use
+    3 dupn digits-LUL get remove
+    swap prefix digits-LUL set ;
+
+! Use of an operator
+M: operator use
+    [ class use drop ] [ times>> use drop ]
+    [ dup argument>> use drop ] tri ;
+M: class use
+    3 dupn operators-LUL get remove
+    swap prefix operators-LUL set ;
 
 ! Place 2 objects on the top of the list
 : 2use ( obj1 obj2 -- obj1 obj2 )
@@ -54,22 +72,30 @@ SYMBOL: short-memory
 : used ( obj garb -- obj garb )
     [ use ] dip ;
 
+! Number of bits needed to code an iteger
+: bits-cost ( val -- bits )
+    dup 0 = [ ] [ log2 1 + ] if ;
+
+! Cost of an object regarding its position it a word's list
+: generic-cost ( obj word -- cost )
+    [ dup ] dip get index dup [ nip bits-cost ]
+    [ drop . "Object not learned" print 10 ] if ;
+
+! Cost of an object
 GENERIC: cost>> ( arg -- cost )
 
+! Cost of sequence
 M: sequence cost>>
    0 [ cost>> + ] reduce ; 
 
-! Return an element's cost
-: generic-cost>> ( obj -- cost )
-    short-memory get index dup
-    [ "Object not learned !" print drop short-memory get
-    length ] unless dup 0 = [ ] [ log2 1 + ] if ;
-
+! Cost of an integer
 M: integer cost>>
-    generic-cost>> ;
+    digits-LUL generic-cost ;
 
+! Cost of an operator
 M: operator cost>>
-    generic-cost>> ;
+   [ class operators-LUL generic-cost ]
+   [ times>> cost>> ] [ argument>> cost>> ] tri + + ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !              CONSTRUCTORS               !
@@ -167,7 +193,32 @@ M: integer apply
 M: operator apply
     use dup times>> 0 =
     [ drop { } ]
-    [ [ apply-once use ] [ apply ] bi append ] if ;
+    [ [ apply-once ] [ apply ] bi append ] if ;
+
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!                MAX TIMES SEARCH                !
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Maximum times of this current test
+! 0 means unlimited
+SYMBOL: max-times
+
+! Max times initialization
+: reset-max-times ( -- )
+    0 max-times set ;
+
+! Test if an operator reached its max times
+: are-times-maxed ( op -- ? )
+    times>> max-times get >= ;
+
+! Set max-times to a list max times operator minus one
+: decrement-max-times ( list -- )
+    [ dup operator instance? [ times>> ] [ drop 0 ] if ] map
+    supremum 1 - max-times set ;
+
+! Return a range from a list's length to 2
+: times-range ( list -- range )
+   length 2 [a,b] >array ; 
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !                COPY OPERATOR SEARCH             !
@@ -187,7 +238,8 @@ M: operator apply
 ! Copy-operator's recursive search version
 : (search-operator) ( operator list -- operator rest )
     used 2dup first-argument-equals
-    [ 1 tail [ increment-times ] dip (search-operator) ] when ;
+    [ 1 tail [ increment-times dup are-times-maxed ] dip swap 
+    [ (search-operator) ] unless ] when ;
 
 ! Copy-operator's version of search
 : search-operator ( operator list -- compressed )
@@ -323,6 +375,7 @@ SYMBOL: NONE
 ! Search once on a list for operators
 : iter-compress ( list -- list' )
     { } swap { operator increment-operator } amb -rot
+    dup times-range amb max-times set
     (iter-compress) drop nip ;
 
 ! Return true iff all operators have 1 times (they are
