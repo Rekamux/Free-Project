@@ -66,7 +66,7 @@ SYMBOL: I
 
 : copy ( what times -- seq )
     swap [ ] curry replicate
-    dup first sequence? [ concat ] when ;
+    dup empty? [ dup first sequence? [ concat ] when ] unless ;
 
 : apply-copy ( list -- decompressed )
     2unclip copy append ;
@@ -113,10 +113,14 @@ PRIVATE>
 
 DEFER: decompress
 
+: contains-words? ( seq -- ? )
+    [ word? not ] all? not ;
+
 : decompress-last ( seq -- seq' )
     unclip-last dup word? [ apply ]
     [ [ decompress ] dip suffix ] if ;
 
 : decompress ( seq -- seq' )
     dup empty? [ ]
-    [ decompress-last ] if ;
+    [ decompress-last ] if
+    dup contains-words? [ decompress ] when ;
