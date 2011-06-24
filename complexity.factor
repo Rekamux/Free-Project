@@ -148,10 +148,16 @@ DEFER: decompress
 : fit? ( what where rest -- what where rest ? )
     [ nip [ length ] bi@ > ] 3keep [ rot ] dip swap ;
 
+: extract-same-size ( what where rest -- rest' fitting )
+    nip [ length ] dip swap cut swap ;
+
+: extract-increment ( what where rest -- incremented )
+    drop [ { } ] 2dip increment-and-append
+    [ dup . ] tri@ drop nip ;
+
 : is-increment? ( what where rest -- rest' found )
-    fit? [ 2nip f ] [ [ nip [ length ] dip swap cut swap ]
-    [ drop [ { } ] 2dip increment-and-append [ dup . ] tri@
-    drop nip ] 3bi = ] if ;
+    fit? [ 2nip f ] [ [ extract-same-size ]
+    [ extract-increment ] 3bi = ] if ;
 
 ! : test-max-times-increment
 ! ( max-times times what rest -- max-times times' what rest' )
