@@ -126,4 +126,21 @@ DEFER: decompress
 !            COPY SEARCH             !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+: is-copy? ( what rest -- rest' found )
+    [ dup length ] bi@ rot < [ nip f ]
+    [ [ dup length ] dip swap cut* swap [ = ] dip swap ] if ;
 
+: test-max-times
+( max-times times what rest -- max-times times' what rest' )
+    [ 2dup > ] 2dip rot
+    [ [ dup ] dip is-copy?
+    [ [ 1 + ] 2dip test-max-times ] when ] when ;
+
+! TODO handle optimization eg modify 3array
+: search-copy ( max-times seq what -- seq' )
+    swap [ 1 ] 2dip test-max-times
+    -rot swap C 3array append nip ;
+
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!        INCREMENT SEARCH             !
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
