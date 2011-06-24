@@ -42,6 +42,7 @@ MACRO: nunclip ( n -- quot )
     2dup =
     [ 2drop swap length + swap ]
     [ drop [ 2drop ] 2dip ] if ;
+PRIVATE>
 
 DEFER: containing-sequence
 
@@ -65,7 +66,6 @@ DEFER: containing-sequence
     2dup first-sequence-index
     dup rot > [ drop ] [ [ swap [ - ] dip ] keep
     try-on-first ] if ;
-PRIVATE>
 
 : containing-sequence ( n seq -- n' seq' )
     dup none-sequence? [ ] [ test-on-first ] if ;
