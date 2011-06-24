@@ -27,3 +27,21 @@ USING:
     [ 1 + ] [ change-extended-nth ] 2keep drop
 ] unit-test
 
+{ {
+    1 { 2 { 3 } 4 } 5 { 6 }
+    1 { 2 { 3 } 4 } 5 { 6 }
+    1 { 2 { 3 } 4 } 5 { 6 } 
+} }
+[ { { 1 { 2 { 3 } 4 } 5 { 6 } } 3 } apply-copy ] unit-test
+
+{ {
+    1 { 2 { 3 } 4 } 5 { 6 }
+    2 { 2 { 4 } 4 } 5 { 7 }
+    3 { 2 { 5 } 4 } 5 { 8 } 
+} }
+[ { 
+    { 1 { 2 { 3 } 4 } 5 { 6 } }
+    { 0 2 5 }
+    3 
+} apply-increment ] unit-test
+
