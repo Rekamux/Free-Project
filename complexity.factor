@@ -60,6 +60,10 @@ SYMBOL: C
 
 SYMBOL: I
 
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!             APPLY COPY                   !
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 : copy ( what times -- seq )
     swap [ ] curry replicate
     dup first sequence? [ concat ] when ;
@@ -67,8 +71,31 @@ SYMBOL: I
 : apply-copy ( list -- decompressed )
     2unclip copy append ;
 
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!           APPLY INCREMENT               !
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+<PRIVATE
+: suffix-or-append ( seq obj -- seq' )
+    dup sequence? [ append ] [ suffix ] if ;
+
+: increment-somewhere ( what where -- what )
+    swap [ 1 + ] [ change-extended-nth ] 2keep drop ;
+
+: increment-and-append ( done what where -- done' what' where )
+    [ [ deep-clone suffix-or-append ] keep ] dip
+    [ [ increment-somewhere ] each ]
+    2keep nip ;
+    
+
+: decrement-times
+( done what where times -- done' what' where times' )
+    dup zero? [ ]
+    [ 1 - [ increment-and-append ] dip decrement-times ] if ;
+PRIVATE>
+
 : increment ( what where times -- seq )
-    2drop ;
+    [ { } ] 3dip decrement-times 3drop ;
 
 : apply-increment ( list -- decompressed )
     3unclip increment append ;

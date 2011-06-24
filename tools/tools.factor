@@ -76,3 +76,8 @@ PRIVATE>
 : change-extended-nth ( n seq quot -- )
     [ [ extend nth ] dip call ] 3keep
     drop set-extended-nth ; inline
+
+: deep-clone ( seq -- seq' )
+    dup empty? [ ]
+    [ unclip dup sequence? [ [ deep-clone ] bi@ prefix ]
+    [ [ deep-clone ] dip prefix ] if ] if ;
