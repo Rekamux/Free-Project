@@ -40,18 +40,19 @@ MACRO: nunclip ( n -- quot )
 DEFER: containing-sequence
 
 <PRIVATE
-: continue-and-append ( bef m cs aft -- n' seq' )
+: continue-and-append ( seq bef m cs aft -- n' seq' )
     2dup =
-    [ [ 2drop swap length + ] [ [ 2drop ] dip append ] 4 nbi ]
-    [ drop [ drop ] 2dip ] if ;
+    [ 2drop swap length + swap ]
+    [ drop [ 2drop ] 2dip ] if ;
 
-: continue-and-test ( n-i-xl bef aft -- n' seq' )
+: continue-and-test ( seq n-i-xl bef aft -- n' seq' )
     [ swap ] dip [ containing-sequence ] keep
     continue-and-append ;
 
 : cut-and-continue ( n-i seq i -- n' seq' )
+    [ drop nip ]
     [ swap nth extd-length - ]
-    [ 1 + cut [ nip ] dip ] 3bi continue-and-test ;
+    [ 1 + cut [ nip ] dip ] 3tri continue-and-test ;
 
 : go-into ( n-i seq i -- n' seq' )
     swap nth containing-sequence ;
@@ -69,9 +70,9 @@ PRIVATE>
 : containing-sequence ( n seq -- n' seq' )
     dup none-sequence? [ ] [ test-on-first ] if ;
 
-: set-extended-nth ( elt n seq -- seq )
-    [ containing-sequence set-nth ] keep ;
+: set-extended-nth ( elt n seq -- )
+    containing-sequence set-nth ;
 
-: change-extended-nth ( n seq quot -- seq )
+: change-extended-nth ( n seq quot -- )
     [ [ extend nth ] dip call ] 3keep
-    drop set-extended-nth nip ; inline
+    drop set-extended-nth ; inline
