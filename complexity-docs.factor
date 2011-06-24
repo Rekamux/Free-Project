@@ -42,7 +42,7 @@ HELP: generic-cost
 
 HELP: cost>>
 { $values { "arg" "object to be evaluated" } { "cost" "result cost" } }
-{ $description "Return the cost of an object" } ;
+{ $description "Return the cost of an object regarding its position in " { $link LUL } "." } ;
 
 HELP: C
 { $description "Used to apply do-copy on the rest of the list." } ;

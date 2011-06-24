@@ -23,7 +23,7 @@ USING:
 SYMBOL: LUL
 
 : resetLUL ( -- )
-    [ ] clone LUL set ;
+    { } clone LUL set ;
 
 : use ( obj -- obj )
     3 dupn LUL get remove
@@ -128,19 +128,38 @@ DEFER: decompress
 
 : is-copy? ( what rest -- rest' found )
     [ dup length ] bi@ rot < [ nip f ]
-    [ [ dup length ] dip swap cut* swap [ = ] dip swap ] if ;
+    [ [ dup length ] dip swap cut [ = ] dip swap ] if ;
 
-: test-max-times
+: test-max-times-copy
 ( max-times times what rest -- max-times times' what rest' )
     [ 2dup > ] 2dip rot
     [ [ dup ] dip is-copy?
-    [ [ 1 + ] 2dip test-max-times ] when ] when ;
+    [ [ 1 + ] 2dip test-max-times-copy ] when ] when ;
 
 ! TODO handle optimization eg modify 3array
 : search-copy ( max-times seq what -- seq' )
-    swap [ 1 ] 2dip test-max-times
-    -rot swap C 3array append nip ;
+    swap [ 1 ] 2dip test-max-times-copy
+    -rot swap C 3array swap append nip ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !        INCREMENT SEARCH             !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+: fit? ( what where rest -- what where rest ? )
+    [ nip [ length ] bi@ > ] 3keep [ rot ] dip swap ;
+
+: is-increment? ( what where rest -- rest' found )
+    fit? [ 2nip f ] [ [ nip [ length ] dip swap cut swap ]
+    [ drop [ { } ] 2dip increment-and-append [ dup . ] tri@
+    drop nip ] 3bi = ] if ;
+
+! : test-max-times-increment
+! ( max-times times what rest -- max-times times' what rest' )
+!     [ 2dup > ] 2dip rot
+!     [ [ dup ] dip is-increment?
+!     [ [ 1 + ] 2dip test-max-times-increment ] when ] when ;
+! 
+! ! TODO handle optimization eg modify 3array
+! : search-increment ( max-times seq what -- seq' )
+!     swap [ 1 ] 2dip test-max-times-increment
+!     -rot swap C 3array append nip ;
