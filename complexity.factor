@@ -5,6 +5,7 @@ USING:
     math.ranges
     arrays
     sequences
+    sequences.generalizations
     accessors
     classes
     prettyprint io
@@ -60,7 +61,8 @@ SYMBOL: C
 SYMBOL: I
 
 : copy ( what times -- seq )
-    swap [ ] curry replicate ;
+    swap [ ] curry replicate
+    dup first sequence? [ concat ] when ;
 
 : apply-copy ( list -- decompressed )
     2unclip copy append ;
