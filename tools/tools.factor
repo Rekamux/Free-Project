@@ -3,6 +3,7 @@ USING:
     kernel
     sequences
     sequences.generalizations
+    generalizations
     prettyprint io
     macros
     math
@@ -39,31 +40,30 @@ MACRO: nunclip ( n -- quot )
 DEFER: containing-sequence
 
 <PRIVATE
-: continue-and-append ( n-xl+1 bef m cs aft -- n' seq' )
+: continue-and-append ( bef m cs aft -- n' seq' )
     "" print
     "continue and append start" print
-    [ [ dup . ] tri@ ] 2dip [ dup . ] bi@
+    [ [ dup . ] bi@ ] 2dip [ dup . ] bi@
     2dup =
-    [ [ 2drop ] dip append ]
-    [ drop [ 2drop ] 2dip ] if
+    [ [ 2drop swap length + ] [ [ 2drop ] dip append ] 4 nbi ]
+    [ drop [ drop ] 2dip ] if
     "-----caa end" print [ dup . ] bi@ ;
 
-: continue-and-test ( n-xl+1 n-i-xl bef aft -- n' seq' )
+: continue-and-test ( n-i-xl bef aft -- n' seq' )
     "" print
     "continue and test start" print
-    [ [ dup . ] bi@ ] 2dip [ dup . ] bi@
+    [ dup . ] tri@
     [ swap ] dip [ containing-sequence ] keep
     continue-and-append
     "-----cat end" print [ dup . ] bi@ ;
 
 : cut-and-continue ( n-i seq i -- n' seq' )
     "" print
-    "tail and continue start" print
+    "cut and continue start" print
     [ dup . ] tri@
-    [ [ nip + 1 + ] [ swap nth extd-length ] 3bi
-    [ - ] curry bi@ ]
+    [ swap nth extd-length - ]
     [ 1 + cut [ nip ] dip ] 3bi continue-and-test
-    "-----tac end" print [ dup . ] bi@ ;
+    "-----cac end" print [ dup . ] bi@ ;
 
 : go-into ( n-i seq i -- n' seq' )
     "" print
