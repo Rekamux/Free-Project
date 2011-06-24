@@ -65,8 +65,8 @@ SYMBOL: I
 : apply-copy ( list -- decompressed )
     2unclip copy append ;
 
-: increment ( what on-what times -- seq )
-    2drop ; ! TODO
+: increment ( what where times -- seq )
+    2drop ;
 
 : apply-increment ( list -- decompressed )
     3unclip increment append ;
