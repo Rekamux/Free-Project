@@ -47,13 +47,9 @@ HELP: cost>>
 HELP: C
 { $description "Used to apply do-copy on the rest of the list." } ;
 
-{ C apply-copy copy } related-words
-
-HELP: I
-{ $description "Used to apply do-increment on the rest of the list." } ;
-
-{ I apply-increment } related-words
-
+HELP: copy
+{ $values { "what" "what to copy" } { "times" "times applied" } }
+{ $description "Copy what times and concat them if they are sequences" } ;
 
 HELP: apply-copy
 { $values { "list" "a sequence" } { "decompressed" "decompressed sequence using copy" } }
@@ -63,3 +59,19 @@ HELP: apply-copy
     "Use first element as 'how many times' and second as 'what to copy'." $nl
     "Append the result to the list."
 } ;
+
+{ C apply-copy copy } related-words
+
+HELP: I
+{ $description "Used to apply do-increment on the rest of the list." } ;
+
+HELP: increment
+{ 
+    $values
+    { "what" "what to increment" }
+    { "where" "extended indexes list of where to increment" }
+    { "times" "times to apply" } { "seq" "result" }
+} 
+{ $description "Copy and then increment what times on where it is specified. Append results if what is a list" } ;
+
+{ I apply-increment } related-words

@@ -68,6 +68,10 @@ HELP: change-extended-nth
 
 { extend extd-length containing-sequence set-extended-nth change-extended-nth } related-words
 
-HELP: deep-clone
+HELP: deep-clone-sequence
 { $values { "seq" "a sequence" } { "seq'" "deep copied sequence" } }
 { $description "Copy a sequence and all contained sequences." } ;
+
+HELP: deep-clone
+{ $values { "obj" "an object" } { "obj'" "deep copied object if sequence" } }
+{ $description "Clone an object or " { $link deep-clone } "a sequence and all contained sequences." } ;

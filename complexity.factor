@@ -80,13 +80,14 @@ SYMBOL: I
     dup sequence? [ append ] [ suffix ] if ;
 
 : increment-somewhere ( what where -- what )
-    swap [ 1 + ] [ change-extended-nth ] 2keep drop ;
+    [ dup sequence? ] dip swap
+    [ swap [ 1 + ] [ change-extended-nth ] 2keep drop ]
+    [ drop 1 + ] if ;
 
 : increment-and-append ( done what where -- done' what' where )
     [ [ deep-clone suffix-or-append ] keep ] dip
-    [ [ increment-somewhere ] each ]
-    2keep nip ;
-    
+    dup sequence? [ [ [ increment-somewhere ] each ]
+    2keep nip ] [ [ increment-somewhere ] keep ] if ;
 
 : decrement-times
 ( done what where times -- done' what' where times' )

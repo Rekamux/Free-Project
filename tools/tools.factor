@@ -26,10 +26,10 @@ MACRO: nunclip ( n -- quot )
 : extend ( seq -- extended )
     { } swap (extend) drop ;
 
+<PRIVATE
 : extd-length ( seq -- n )
     extend length ;
 
-<PRIVATE
 : none-sequence? ( seq -- ? )
     [ sequence? not ] all? ;
 
@@ -38,12 +38,12 @@ MACRO: nunclip ( n -- quot )
     [ unclip sequence? [ drop 0 ] [ first-sequence-index 1 + ]
     if ] if ;
 
-DEFER: containing-sequence
-
 : continue-and-append ( seq bef m cs aft -- n' seq' )
     2dup =
     [ 2drop swap length + swap ]
     [ drop [ 2drop ] 2dip ] if ;
+
+DEFER: containing-sequence
 
 : continue-and-test ( seq n-i-xl bef aft -- n' seq' )
     [ swap ] dip [ containing-sequence ] keep
@@ -77,7 +77,12 @@ PRIVATE>
     [ [ extend nth ] dip call ] 3keep
     drop set-extended-nth ; inline
 
-: deep-clone ( seq -- seq' )
+DEFER: deep-clone
+
+: deep-clone-sequence ( seq -- seq' )
     dup empty? [ ]
     [ unclip dup sequence? [ [ deep-clone ] bi@ prefix ]
     [ [ deep-clone ] dip clone prefix ] if ] if ;
+
+: deep-clone ( obj -- obj' )
+    dup sequence? [ deep-clone-sequence ] [ clone ] if ;

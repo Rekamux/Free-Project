@@ -1,8 +1,8 @@
 USING:
     tools.test
     math
-    complexity
     complexity.tools
+    complexity
     accessors
     sequences
     kernel
