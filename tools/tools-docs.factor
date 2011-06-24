@@ -46,12 +46,12 @@ HELP: extd-length
 { $values { "seq" "a sequence" } { "n" "length" } }
 { $description "Return extended list's length." } ;
 
-HELP: containing-sequence
-{ $values { "n" "index of extended sequence" } { "seq" "a sequence" } }
-{
-    $description
-    "Return the smallest sequence containing extended list nth element, and its real index."
-} ;
+! HELP: containing-sequence
+! { $values { "n" "index of extended sequence" } { "seq" "a sequence" } }
+! {
+!     $description
+!     "Return the smallest sequence containing extended list nth element, and its real index."
+! } ;
 
 HELP: set-extended-nth
 { $values { "elt" "new value" } { "n" "index of extended sequence" } { "seq" "a sequence" } }
@@ -66,7 +66,7 @@ HELP: change-extended-nth
 }
 { $description "Apply given quotation on extended indexed element." } ;
 
-{ extend extd-length containing-sequence set-extended-nth change-extended-nth } related-words
+{ extend extd-length set-extended-nth change-extended-nth } related-words
 
 HELP: deep-clone-sequence
 { $values { "seq" "a sequence" } { "seq'" "deep copied sequence" } }
@@ -75,3 +75,7 @@ HELP: deep-clone-sequence
 HELP: deep-clone
 { $values { "obj" "an object" } { "obj'" "deep copied object if sequence" } }
 { $description "Clone an object or " { $link deep-clone } "a sequence and all contained sequences." } ;
+
+HELP: contains-words?
+{ $values { "seq" "a sequence" } { "?" "a boolean" } }
+{ $description "Return false iff all elements of this sequence are not words." } ;

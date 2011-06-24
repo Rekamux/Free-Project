@@ -7,6 +7,7 @@ USING:
     prettyprint io
     macros
     math
+    words
     ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -34,10 +35,10 @@ MACRO: nunclip ( n -- quot )
 : extend ( seq -- extended )
     { } swap (extend) drop ;
 
-<PRIVATE
 : extd-length ( seq -- n )
     extend length ;
 
+<PRIVATE
 : none-sequence? ( seq -- ? )
     [ sequence? not ] all? ;
 
@@ -99,3 +100,10 @@ DEFER: deep-clone
 
 : deep-clone ( obj -- obj' )
     dup sequence? [ deep-clone-sequence ] [ clone ] if ;
+
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!       SEQUENCE GENERALIZATION     !
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+: contains-words? ( seq -- ? )
+    [ word? not ] all? not ;

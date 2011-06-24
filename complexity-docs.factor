@@ -75,3 +75,16 @@ HELP: increment
 { $description "Copy and then increment what times on where it is specified. Append results if what is a list" } ;
 
 { I apply-increment } related-words
+
+HELP: apply
+{ $values { "seq" "a sequence" } { "word" "C or I" } { "seq'" "decompressed" } }
+{ $description "Apply an word on the list. It must be " { $link C } " or " { $link I } "." } ;
+
+HELP: decompress-last
+{ $values { "seq" "a sequence" } { "seq'" "decompressed" } }
+{ $description "Apply last element on the rest of the list. It must be " { $link C } " or " { $link I } "." } ;
+
+HELP: decompress
+{ $values { "seq" "a sequence" } { "seq'" "decompressed" } }
+{ $description "Decompress sequence while there are still words on it." } ;
+

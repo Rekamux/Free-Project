@@ -45,3 +45,5 @@ USING:
     3 
 } apply-increment ] unit-test
 
+{ { 3 4 4 5 5 5 6 6 6 6 7 7 7 7 7 } }
+[ { { 2 0 C } { 0 1 } 6 I } decompress ] unit-test

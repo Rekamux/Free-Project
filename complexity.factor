@@ -113,9 +113,6 @@ PRIVATE>
 
 DEFER: decompress
 
-: contains-words? ( seq -- ? )
-    [ word? not ] all? not ;
-
 : decompress-last ( seq -- seq' )
     unclip-last dup word? [ apply ]
     [ [ decompress ] dip suffix ] if ;
@@ -124,3 +121,9 @@ DEFER: decompress
     dup empty? [ ]
     [ decompress-last ] if
     dup contains-words? [ decompress ] when ;
+
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!            COPY SEARCH             !
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
