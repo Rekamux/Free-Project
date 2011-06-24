@@ -159,12 +159,23 @@ DEFER: decompress
     fit? [ 2nip f ] [ [ extract-same-size ]
     [ extract-increment ] 3bi = ] if ;
 
-! : test-max-times-increment
-! ( max-times times what rest -- max-times times' what rest' )
-!     [ 2dup > ] 2dip rot
-!     [ [ dup ] dip is-increment?
-!     [ [ 1 + ] 2dip test-max-times-increment ] when ] when ;
-! 
+: test-max-times-increment
+( max-times times what where rest --
+max-times times' what where rest' )
+    [ 2dup > ] 3dip [ rot ] dip swap
+    [ [ 2dup ] dip is-increment?
+    [ [ 1 + ] 3dip test-max-times-increment ] when ] when ;
+
+SYMBOL: helper
+
+: inc-helper ( -- )
+    helper get 1 + helper set ;
+
+: find-where ( from to -- where )
+    0 helper set
+    [ extend ] bi@ [ 1 - = [ { } helper get prefix ]
+    [ { } ] if ] [ append inc-helper ] 2map-reduce ;
+
 ! ! TODO handle optimization eg modify 3array
 ! : search-increment ( max-times seq what -- seq' )
 !     swap [ 1 ] 2dip test-max-times-increment
