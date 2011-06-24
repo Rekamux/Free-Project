@@ -41,60 +41,37 @@ DEFER: containing-sequence
 
 <PRIVATE
 : continue-and-append ( bef m cs aft -- n' seq' )
-    "" print
-    "continue and append start" print
-    [ [ dup . ] bi@ ] 2dip [ dup . ] bi@
     2dup =
     [ [ 2drop swap length + ] [ [ 2drop ] dip append ] 4 nbi ]
-    [ drop [ drop ] 2dip ] if
-    "-----caa end" print [ dup . ] bi@ ;
+    [ drop [ drop ] 2dip ] if ;
 
 : continue-and-test ( n-i-xl bef aft -- n' seq' )
-    "" print
-    "continue and test start" print
-    [ dup . ] tri@
     [ swap ] dip [ containing-sequence ] keep
-    continue-and-append
-    "-----cat end" print [ dup . ] bi@ ;
+    continue-and-append ;
 
 : cut-and-continue ( n-i seq i -- n' seq' )
-    "" print
-    "cut and continue start" print
-    [ dup . ] tri@
     [ swap nth extd-length - ]
-    [ 1 + cut [ nip ] dip ] 3bi continue-and-test
-    "-----cac end" print [ dup . ] bi@ ;
+    [ 1 + cut [ nip ] dip ] 3bi continue-and-test ;
 
 : go-into ( n-i seq i -- n' seq' )
-    "" print
-    "go into start" print
-    [ dup . ] tri@
-    swap nth containing-sequence
-    "-----gi end" print [ dup . ] bi@ ;
+    swap nth containing-sequence ;
 
 : try-on-first ( n-i seq i -- n' seq' )
-    "" print
-    "try on first start" print
-    [ dup . ] tri@
     3dup swap nth extd-length >=
-    [ cut-and-continue ] [ go-into ] if
-    "-----try of end" print [ dup . ] bi@ ;
+    [ cut-and-continue ] [ go-into ] if ;
 
 : test-on-first ( n seq -- n' seq' )
-    "" print
-    "test on first start" print
-    [ dup . ] bi@
     2dup first-sequence-index
     dup rot > [ drop ] [ [ swap [ - ] dip ] keep
-    try-on-first ] if
-    "-----test of end" print [ dup . ] bi@ ;
+    try-on-first ] if ;
 PRIVATE>
 
 : containing-sequence ( n seq -- n' seq' )
     dup none-sequence? [ ] [ test-on-first ] if ;
 
-: set-extended-nth ( n seq quot -- )
-    3drop ; ! TODO
+: set-extended-nth ( elt n seq -- seq )
+    [ containing-sequence set-nth ] keep ;
 
 : change-extended-nth ( n seq quot -- seq )
-    [ [ nth ] dip call ] 3keep drop set-nth ; inline
+    [ [ extend nth ] dip call ] 3keep
+    drop set-extended-nth nip ; inline
