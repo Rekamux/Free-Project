@@ -188,3 +188,15 @@ PRIVATE>
     [ 2nip deep-clone ] 3keep prepare-where [ drop empty? ]
     2keep rot [ 4 nnip ] [ [ 1 ] 3dip test-max-times-increment
     [ [ drop rot ] dip rot I 4array ] dip swap append nip ] if ;
+
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!           COMPRESSION              !
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+: sizes-list ( seq -- seq sizes )
+    dup length 2 / 2 swap [a,b] >array ;
+
+: try-size ( max-times seq op -- seq' )
+    [ sizes-list amb ] dip
+    { { C [ search-copy ] } { I [ search-increment ] } } case ;
+
