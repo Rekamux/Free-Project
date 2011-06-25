@@ -16,18 +16,29 @@ USING:
     words
     ;
 
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!             OPERATORS                    !
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+SYMBOL: C
+
+SYMBOL: I
+
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !         LAST USED LIST                  !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 SYMBOL: LUL
 
-: resetLUL ( -- )
-    { } clone LUL set ;
+: reset-LUL ( -- )
+    { C I } clone LUL set ;
+
+: insert ( obj seq -- seq )
+    2 cut [ swap suffix ] dip append ;
 
 : generic-use ( obj -- obj )
     3 dupn LUL get remove
-    swap prefix LUL set ;
+    insert LUL set ;
 
 GENERIC: use ( obj -- obj )
 
@@ -35,14 +46,12 @@ M: sequence use
     dup empty? [ ]
     [ [ unclip [ use drop ] bi@ ] keep ] if ;
 
-M: integer use
-    generic-use ;
+M: integer use generic-use ;
 
-M: word use
-    generic-use ;
+M: word use ;
 
 : 2use ( obj1 obj2 -- obj1 obj2 )
-    [ use ] dip use ;
+    [ use ] bi@ ;
 
 : used ( obj garb -- obj garb )
     [ use ] dip ;
@@ -63,14 +72,6 @@ M: integer cost>>
 
 M: word cost>>
     generic-cost ;
-
-! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!             OPERATORS                    !
-! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-SYMBOL: C
-
-SYMBOL: I
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !             APPLY COPY                   !
@@ -149,15 +150,12 @@ DEFER: decompress
     [ [ dup ] dip is-copy?
     [ [ 1 + ] 2dip test-max-times-copy ] when ] when ;
 
-! TODO handle optimization eg modify 3array
-: search-copy ( max-times seq what -- seq' )
-    " search-copy " print
-    [ dup . ] tri@
+: create-copy ( what times -- seq )
+    [ dup length 1 = [ first ] when ] dip C 3array ;
 
+: search-copy ( max-times seq what -- seq' )
     swap [ 1 ] 2dip test-max-times-copy
-    -rot swap C 3array swap append nip
-    
-    " search-copy end " print dup . ;
+    -rot swap create-copy swap append nip ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !        INCREMENT SEARCH             !
@@ -190,10 +188,15 @@ SYMBOL: helper
 : inc-helper ( -- )
     helper get 1 + helper set ;
 
+: find-where-reduce-quot ( to from -- seq )
+    dup word? [ 2drop { } ]
+    [ 1 - =
+    [ { } helper get inc-helper prefix ] [ { } ] if ] if ;
+
 : find-where ( from to -- where )
     0 helper set
-    [ extend ] bi@ [ 1 - = [ { } helper get inc-helper prefix ]
-    [ { } ] if ] [ append ] 2map-reduce ;
+    [ extend ] bi@
+    [ find-where-reduce-quot ] [ append ] 2map-reduce ;
 
 : prepare-where ( seq what -- what where seq )
     swap 2dup fit? [ 2dup extract-same-size nip
@@ -204,25 +207,23 @@ PRIVATE>
 : treat-no-increment ( what where seq -- seq' )
     nip [ 0 1 I 3array append ] dip append ;
 
+: create-increment ( what where times -- seq )
+    [ [ dup length 1 = [ first ] when ] bi@ ] dip I 4array ;
+
 : prepare-sequence
 ( first max-times times what where seq -- seq' )
     [ drop nip ] 2dip
-    [ swap I 4array ] dip
+    [ swap create-increment ] dip
     append ;
 
 : treat-increment ( first max-times what where seq -- seq' )
     [ 1 ] 3dip test-max-times-increment
     prepare-sequence ;
 
-! TODO handle optimization eg modify 3array
 : search-increment ( max-times seq what -- seq' )
-    " search-increment " print
-    [ dup . ] tri@
-
     [ 2nip deep-clone ] 3keep prepare-where [ drop empty? ]
-    2keep rot [ treat-no-increment 2nip ] [ treat-increment ] if
-    
-    " search-increment end " print dup . ;
+    2keep rot
+    [ treat-no-increment 2nip ] [ treat-increment ] if ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !           COMPRESSION              !
@@ -271,23 +272,19 @@ DEFER: try-on-list
     { } swap { C I } amb try-on-list 2drop ;
 
 : c-max? ( seq -- ? )
-    dup length 2 = [ first integer? ] [ drop f ] if ;
+    dup length 2 = [ last integer? ] [ drop f ] if ;
 
 : i-max? ( seq -- ? )
-    dup length 3 = [ [ first integer? ] [ [ second [ integer? ]
-    all? ] [ second integer? ] bi or ] bi and ] [ drop f ] if ;
+    dup length 3 =
+    [ [ last integer? ] [ second dup sequence? [ [ integer? ]
+    all? ] [ integer? ] if ] bi and ] [ drop f ] if ;
 
 : is-max-compressed? ( seq -- ? )
-    unclip-last dup word?
+    dup empty? [ drop f ] [ unclip-last dup word?
     [ { { C [ c-max? ] } { I [ i-max? ] } [ 2drop f ] } case ]
-    [ 2drop f ] if ;
+    [ 2drop f ] if ] if ;
 
 : compress ( seq -- seq' )
-    " compress " print
-    dup .
-
     dup is-max-compressed?
-    [ dup try-operator 2dup "costs" print [ cost>> dup . ] bi@
-    >= [ nip compress ] [ fail ] if ] unless 
-    
-    " compress end " print dup . ;
+    [ dup deep-clone try-operator 2dup [ cost>> ] bi@ >
+    [ nip compress ] [ fail ] if ] unless ;

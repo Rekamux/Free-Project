@@ -10,7 +10,7 @@ HELP: LUL
     "Contain recent used words and digits called with " { $link use } " in call order."
 } ;
 
-HELP: resetLUL
+HELP: reset-LUL
 {
     $description
     "Set an empty list into "
@@ -30,7 +30,7 @@ HELP: used
 { $values { "obj" "object to be used" } { "garb" "anything" } }
 { $description "Place second object on the top of " { $link LUL } } ;
 
-{ LUL cost>> resetLUL use 2use used } related-words
+{ LUL cost>> reset-LUL use 2use used } related-words
 
 HELP: bits-cost
 { $values { "val" "an integer" } { "bits" "an integer" } }
