@@ -16,6 +16,14 @@ USING:
     words
     ;
 
+SYMBOL: debug
+
+: set-debug ( -- )
+    t debug set ;
+
+: reset-debug ( -- )
+    f debug set ;
+
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !             OPERATORS                    !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -233,26 +241,33 @@ PRIVATE>
     dup length 1 swap [a,b] >array ;
 
 : try-size ( max-times seq op -- seq' )
-    used [ sizes-list amb cut swap ] dip
-    { { C [ search-copy ] } { I [ search-increment ] } } case
-    use ;
+    used [ sizes-list amb
+    debug get [ nl "Trying with size" print dup . ] when
+    cut swap ] dip 
+    { { C [ search-copy ] } { I [ search-increment ]
+    } } case use ;
 
 : times-list ( seq -- seq times )
     dup length 1 [a,b] >array ;
 
 : try-times ( seq op -- seq' )
-   [ times-list amb swap ] dip 
-   try-size ;
+    [ times-list amb
+    debug get [ nl "Trying with times" print dup . ] when
+    swap ]
+    dip try-size ;
+
+: no-op ( seq -- empty seq f )
+    { } swap f ;
 
 : begins-with-C? ( seq -- list-op rest ? )
-    dup length 3 < [ { } swap f ]
+    dup length 3 < [ no-op ]
     [ dup third C = [ 3 cut t ]
-    [ { } swap f ] if ] if ;
+    [ no-op ] if ] if ;
 
 : begins-with-I? ( seq -- list-op rest ? )
-    dup length 4 < [ { } swap f ]
+    dup length 4 < [ no-op ]
     [ dup fourth I = [ 4 cut t ]
-    [ { } swap f ] if ] if ;
+    [ no-op ] if ] if ;
 
 : begins-with-op? ( seq -- list-op rest ? )
     begins-with-C? [ t ]
@@ -269,7 +284,9 @@ DEFER: try-on-list
     [ try-on-list-unsafe ] if ;
 
 : try-operator ( seq -- seq' )
-    { } swap { C I } amb try-on-list 2drop ;
+    { } swap { C I } amb 
+    debug get [ nl "Trying with operator" print dup . ] when
+    try-on-list drop append ;
 
 : c-max? ( seq -- ? )
     dup length 2 = [ last integer? ] [ drop f ] if ;
@@ -284,7 +301,16 @@ DEFER: try-on-list
     [ { { C [ c-max? ] } { I [ i-max? ] } [ 2drop f ] } case ]
     [ 2drop f ] if ] if ;
 
+: compare-costs ( before after -- best after-best? )
+    debug get
+    [ nl "Comparing " print [ dup . ] bi@ "Sizes are" print ]
+    when
+    2dup [ cost>> 
+    debug get [ dup . ] when
+    ] bi@ > [ nip t ] [ drop f ] if 
+    debug get [ "Best is" print [ dup . ] dip ] when ;
+
 : compress ( seq -- seq' )
     dup is-max-compressed?
-    [ dup deep-clone try-operator 2dup [ cost>> ] bi@ >
-    [ nip compress ] [ fail ] if ] unless ;
+    [ dup deep-clone try-operator compare-costs
+    [ ] [ fail ] if ] unless ;
