@@ -25,9 +25,21 @@ SYMBOL: LUL
 : resetLUL ( -- )
     { } clone LUL set ;
 
-: use ( obj -- obj )
+: generic-use ( obj -- obj )
     3 dupn LUL get remove
     swap prefix LUL set ;
+
+GENERIC: use ( obj -- obj )
+
+M: sequence use
+    dup empty? [ ]
+    [ [ unclip [ use drop ] bi@ ] keep ] if ;
+
+M: integer use
+    generic-use ;
+
+M: word use
+    generic-use ;
 
 : 2use ( obj1 obj2 -- obj1 obj2 )
     [ use ] dip use ;
@@ -138,8 +150,13 @@ DEFER: decompress
 
 ! TODO handle optimization eg modify 3array
 : search-copy ( max-times seq what -- seq' )
+    " search-copy " print
+    [ dup . ] tri@
+
     swap [ 1 ] 2dip test-max-times-copy
-    -rot swap C 3array swap append nip ;
+    -rot swap C 3array swap append nip
+    
+    " search-copy end " print dup . ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !        INCREMENT SEARCH             !
@@ -185,18 +202,79 @@ PRIVATE>
 
 ! TODO handle optimization eg modify 3array
 : search-increment ( max-times seq what -- seq' )
+    " search-increment " print
+    [ dup . ] tri@
+
     [ 2nip deep-clone ] 3keep prepare-where [ drop empty? ]
     2keep rot [ 4 nnip ] [ [ 1 ] 3dip test-max-times-increment
-    [ [ drop rot ] dip rot I 4array ] dip swap append nip ] if ;
+    [ [ drop rot ] dip rot I 4array ] dip swap append nip ] if
+    
+    " search-increment end " print dup . ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !           COMPRESSION              !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 : sizes-list ( seq -- seq sizes )
-    dup length 2 / 2 swap [a,b] >array ;
+    dup length 1 swap [a,b] >array ;
 
 : try-size ( max-times seq op -- seq' )
-    [ sizes-list amb ] dip
-    { { C [ search-copy ] } { I [ search-increment ] } } case ;
+    used [ sizes-list amb cut swap ] dip
+    { { C [ search-copy ] } { I [ search-increment ] } } case
+    use ;
 
+: times-list ( seq -- seq times )
+    dup length 1 [a,b] >array ;
+
+: try-times ( seq op -- seq' )
+   [ times-list amb swap ] dip 
+   try-size ;
+
+: begins-with-C? ( seq -- list-op rest ? )
+    dup length 3 < [ { } swap f ]
+    [ dup third C = [ 3 cut t ]
+    [ { } swap f ] if ] if ;
+
+: begins-with-I? ( seq -- list-op rest ? )
+    dup length 4 < [ { } swap f ]
+    [ dup fourth I = [ 4 cut t ]
+    [ { } swap f ] if ] if ;
+
+: begins-with-op? ( seq -- list-op rest ? )
+    begins-with-C? [ t ]
+    [ nip begins-with-I? ] if ;
+
+DEFER: try-on-list
+
+: try-on-list-unsafe ( done rest op -- done' rest' op )
+    [ try-times begins-with-op? ] keep swap
+    [ [ append ] 2dip try-on-list ] [ rot drop ] if ;
+
+: try-on-list ( done rest op -- done' rest' op )
+    [ dup empty? ] dip swap [ ] 
+    [ try-on-list-unsafe ] if ;
+
+: try-operator ( seq -- seq' )
+    { } swap { C I } amb try-on-list 2drop ;
+
+: c-max? ( seq -- ? )
+    dup length 2 = [ first integer? ] [ drop f ] if ;
+
+: i-max? ( seq -- ? )
+    dup length 3 = [ [ first integer? ] [ [ second [ integer? ]
+    all? ] [ second integer? ] bi or ] bi and ] [ drop f ] if ;
+
+: is-max-compressed? ( seq -- ? )
+    unclip-last dup word?
+    [ { { C [ c-max? ] } { I [ i-max? ] } [ 2drop f ] } case ]
+    [ 2drop f ] if ;
+
+: compress ( seq -- seq' )
+    " compress " print
+    dup .
+
+    dup is-max-compressed?
+    [ dup try-operator 2dup "costs" print [ cost>> dup . ] bi@
+    >= [ nip compress ] [ fail ] if ] unless 
+    
+    " compress end " print dup . ;
