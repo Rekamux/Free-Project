@@ -339,10 +339,15 @@ DEFER: try-on-list
     [ [ last integer? ] [ second dup sequence? [ [ integer? ]
     all? ] [ integer? ] if ] bi and ] [ drop f ] if ;
 
-: is-max-compressed? ( seq -- ? )
+: is-interessant? ( seq -- ? )
     dup empty? [ drop f ] [ unclip-last dup word?
     [ { { C [ c-max? ] } { I [ i-max? ] } [ 2drop f ] } case ]
     [ 2drop f ] if ] if ;
+
+: is-max-compressed? ( seq -- ? )
+    dup is-interessant?
+    [ 2 cut* nip first 1 = not ]
+    [ drop f ] if ;
 
 : compare-costs ( before after -- best after-best? )
     debug get
@@ -354,6 +359,6 @@ DEFER: try-on-list
     debug get [ "Best is" print [ dup . ] dip ] when ;
 
 : compress ( seq -- seq' )
-    dup is-max-compressed?
-    [ dup deep-clone try-operator compare-costs
-    [ ] [ fail ] if ] unless ;
+    dup is-max-compressed? [ dup deep-clone try-operator
+    dup is-max-compressed? [ nip ] [ compare-costs [ ] [ fail ] if ]
+    if ] unless ;
