@@ -140,7 +140,8 @@ DEFER: decompress
 
 : is-copy? ( what rest -- rest' found )
     [ dup length ] bi@ rot < [ nip f ]
-    [ [ dup length ] dip swap cut [ = ] dip swap ] if ;
+    [ [ dup length ] dip swap cut [ [ = ] keep ] dip rot
+    [ nip t ] [ append f ] if ] if ;
 
 : test-max-times-copy
 ( max-times times what rest -- max-times times' what rest' )
@@ -200,14 +201,26 @@ SYMBOL: helper
     [ { } swap ] if ;
 PRIVATE>
 
+: treat-no-increment ( what where seq -- seq' )
+    nip [ 0 1 I 3array append ] dip append ;
+
+: prepare-sequence
+( first max-times times what where seq -- seq' )
+    [ drop nip ] 2dip
+    [ swap I 4array ] dip
+    append ;
+
+: treat-increment ( first max-times what where seq -- seq' )
+    [ 1 ] 3dip test-max-times-increment
+    prepare-sequence ;
+
 ! TODO handle optimization eg modify 3array
 : search-increment ( max-times seq what -- seq' )
     " search-increment " print
     [ dup . ] tri@
 
     [ 2nip deep-clone ] 3keep prepare-where [ drop empty? ]
-    2keep rot [ 4 nnip ] [ [ 1 ] 3dip test-max-times-increment
-    [ [ drop rot ] dip rot I 4array ] dip swap append nip ] if
+    2keep rot [ treat-no-increment 2nip ] [ treat-increment ] if
     
     " search-increment end " print dup . ;
 
