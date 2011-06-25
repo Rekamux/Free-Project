@@ -145,19 +145,20 @@ DEFER: decompress
 !        INCREMENT SEARCH             !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-: fit? ( what where rest -- what where rest ? )
-    [ nip [ length ] bi@ > ] 3keep [ rot ] dip swap ;
+<PRIVATE
+: fit? ( what rest -- ? )
+    [ length ] bi@ <= ;
 
-: extract-same-size ( what where rest -- rest' fitting )
-    nip [ length ] dip swap cut swap ;
+: extract-same-size ( what rest -- rest' fitting )
+    [ length ] dip swap cut swap ;
 
-: extract-increment ( what where rest -- incremented )
-    drop [ { } ] 2dip increment-and-append
-    [ dup . ] tri@ drop nip ;
+: extract-increment ( what where -- incremented )
+    [ { } ] 2dip increment-and-append
+    drop nip ;
 
 : is-increment? ( what where rest -- rest' found )
-    fit? [ 2nip f ] [ [ extract-same-size ]
-    [ extract-increment ] 3bi = ] if ;
+    3dup nip fit? [ [ nip extract-same-size ]
+    [ drop extract-increment ] 3bi = ] [ 2nip f ] if ;
 
 : test-max-times-increment
 ( max-times times what where rest --
@@ -173,10 +174,17 @@ SYMBOL: helper
 
 : find-where ( from to -- where )
     0 helper set
-    [ extend ] bi@ [ 1 - = [ { } helper get prefix ]
-    [ { } ] if ] [ append inc-helper ] 2map-reduce ;
+    [ extend ] bi@ [ 1 - = [ { } helper get inc-helper prefix ]
+    [ { } ] if ] [ append ] 2map-reduce ;
 
-! ! TODO handle optimization eg modify 3array
-! : search-increment ( max-times seq what -- seq' )
-!     swap [ 1 ] 2dip test-max-times-increment
-!     -rot swap C 3array append nip ;
+: prepare-where ( seq what -- what where seq )
+    swap 2dup fit? [ 2dup extract-same-size nip
+    [ nip find-where ] 3keep drop [ swap ] dip ]
+    [ { } swap ] if ;
+PRIVATE>
+
+! TODO handle optimization eg modify 3array
+: search-increment ( max-times seq what -- seq' )
+    [ 2nip deep-clone ] 3keep prepare-where [ drop empty? ]
+    2keep rot [ 4 nnip ] [ [ 1 ] 3dip test-max-times-increment
+    [ [ drop rot ] dip rot I 4array ] dip swap append nip ] if ;
