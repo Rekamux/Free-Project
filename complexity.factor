@@ -181,15 +181,26 @@ DEFER: decompress
     drop nip ;
 
 : is-increment? ( what where rest -- rest' found )
-    3dup nip fit? [ [ nip extract-same-size ]
-    [ drop extract-increment ] 3bi = ] [ 2nip f ] if ;
+    3dup nip fit? [ [ 2nip ] [ nip extract-same-size ]
+    [ drop extract-increment ] 3tri = 
+    [ nip t ] [ drop f ] if ] [ 2nip f ] if ;
+
+: still-time?
+( max-times times a b c -- max-times times a b c ? )
+    [ 2dup > ] 3dip [ rot ] dip swap ;
 
 : test-max-times-increment
 ( max-times times what where rest --
 max-times times' what where rest' )
-    [ 2dup > ] 3dip [ rot ] dip swap
-    [ [ 2dup ] dip is-increment?
-    [ [ 1 + ] 3dip test-max-times-increment ] when ] when ;
+    ! " test-max-times-increment" print
+    ! [ [ dup . ] bi@ ] 3dip [ dup . ] tri@
+    
+    still-time? [ [ 2dup ] dip is-increment?
+    [ [ 1 + ] 3dip test-max-times-increment ] when ] when
+
+    ! " test-max-times-increment end" print
+    ! [ [ dup . ] bi@ ] 3dip [ dup . ] tri@
+    ;
 
 SYMBOL: helper
 
@@ -213,6 +224,7 @@ SYMBOL: helper
 PRIVATE>
 
 : treat-no-increment ( what where seq -- seq' )
+    ! " treat-no-increment" print [ dup . ] tri@
     nip [ 0 1 I 3array append ] dip append ;
 
 : create-increment ( what where times -- seq )
@@ -229,6 +241,7 @@ PRIVATE>
     prepare-sequence ;
 
 : search-increment ( max-times seq what -- seq' )
+    ! " search-increment" print [ dup . ] tri@
     [ 2nip deep-clone ] 3keep prepare-where [ drop empty? ]
     2keep rot
     [ treat-no-increment 2nip ] [ treat-increment ] if ;
