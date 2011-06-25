@@ -70,10 +70,31 @@ M: word use ;
 : generic-cost ( obj -- cost )
     LUL get index bits-cost ;
 
+: remove-second ( seq -- seq' )
+    unclip [ unclip drop ] dip prefix ;
+
+DEFER: prepare-sequence-cost
+
+: continue-preparing ( seq -- seq' )
+    unclip [ prepare-sequence-cost ] dip prefix ;
+
+: delete-where ( seq -- seq' )
+    [ dup fourth I = ]
+    [ first dup sequence? [ length 1 = ] [ drop t ] if ] bi and
+    [ remove-second 3 cut prepare-sequence-cost append ]
+    [ continue-preparing ] if ;
+    
+
+: prepare-sequence-cost ( seq -- seq' )
+    dup length 4 >=
+    [ delete-where ]
+    [ dup empty? [ ] [ continue-preparing ] if ] if ;
+
 GENERIC: cost>> ( arg -- cost )
 
 M: sequence cost>>
-   0 [ cost>> + ] reduce ; 
+    deep-clone extend prepare-sequence-cost
+    0 [ cost>> + ] reduce ; 
 
 M: integer cost>>
     generic-cost ;
@@ -221,11 +242,11 @@ SYMBOL: helper
     swap 2dup fit? [ 2dup extract-same-size nip
     [ nip find-where ] 3keep drop [ swap ] dip ]
     [ { } swap ] if ;
-PRIVATE>
 
-: treat-no-increment ( what where seq -- seq' )
+: treat-no-increment ( first max-times what where seq -- seq' )
     ! " treat-no-increment" print [ dup . ] tri@
-    nip [ 0 1 I 3array append ] dip append ;
+    [ 3drop dup length 1 = [ 1array ] unless 0 1 I 3array
+    append ] dip append ;
 
 : create-increment ( what where times -- seq )
     [ [ dup length 1 = [ first ] when ] bi@ ] dip I 4array ;
@@ -239,12 +260,13 @@ PRIVATE>
 : treat-increment ( first max-times what where seq -- seq' )
     [ 1 ] 3dip test-max-times-increment
     prepare-sequence ;
+PRIVATE>
 
 : search-increment ( max-times seq what -- seq' )
     ! " search-increment" print [ dup . ] tri@
-    [ 2nip deep-clone ] 3keep prepare-where [ drop empty? ]
-    2keep rot
-    [ treat-no-increment 2nip ] [ treat-increment ] if ;
+    [ 2nip deep-clone ] 3keep prepare-where
+    [ [ empty? ] bi@ or ] 2keep rot
+    [ treat-no-increment ] [ treat-increment ] if ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !           COMPRESSION              !
@@ -255,8 +277,14 @@ PRIVATE>
 
 : try-size ( max-times seq op -- seq' )
     used [ sizes-list amb
+
     debug get [ nl "Trying with size" print dup . ] when
+
     cut swap ] dip 
+
+    debug get [ "times: " print [ dup . ] 3dip 
+    "operator:" print dup . ] when
+
     { { C [ search-copy ] } { I [ search-increment ]
     } } case use ;
 
@@ -267,7 +295,9 @@ PRIVATE>
     [ times-list amb
     debug get [ nl "Trying with times" print dup . ] when
     swap ]
-    dip try-size ;
+    dip 
+    debug get [ "operator:" print dup . ] when
+    try-size ;
 
 : no-op ( seq -- empty seq f )
     { } swap f ;
