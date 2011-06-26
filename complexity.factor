@@ -341,12 +341,12 @@ DEFER: try-on-list
     dup is-max-compressed? [ nip ] [ compare-costs [ compress ]
     [ fail ] if ] if ] unless ;
 
-! : compress-regarding ( searched seq -- seq' )
-!     dup is-max-compressed? [ dup deep-clone try-operator
-!     dup is-max-compressed? [ nip ] [ 
-!     3dup nip = [ set-debug compare-costs reset-debug drop ]
-!     [ compare-costs [ [ compress-regarding ] 2keep drop ]
-!     [ fail ] if ] if ] if ] unless nip ;
+: compress-regarding ( searched seq -- seq' )
+    dup is-max-compressed? [ dup deep-clone try-operator
+    dup is-max-compressed? [ nip ] [ 
+    3dup nip = [ set-debug compare-costs reset-debug drop ]
+    [ compare-costs [ [ compress-regarding ] 2keep drop ]
+    [ fail ] if ] if ] if ] unless nip ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !          CONTINUING            !
@@ -355,7 +355,24 @@ DEFER: try-on-list
 : increment-times ( optimal -- incremented )
     2 cut* unclip 1 + prefix append ;
 
-: logic-extend ( seq -- seq' )
+: extended-sub? ( seq extended -- ? )
+    2dup [ length ] bi@ > [ 2drop f ]
+    [ [ dup length ] dip swap cut drop = ] if ;
+
+: extend-enough ( length seq -- seq' )
+    2dup deep-clone decompress dup length rot <=
+    [ drop increment-times extend-enough ] [ 2nip ] if ;
+
+: compressable? ( seq -- seq' ? )
     { t f } amb
-    [ compress ] when dup is-max-compressed?
-    [ increment-times decompress ] when ;
+    [ compress t ] [ f ] if ;
+
+: try-removing ( orig-seq orig-length seq drop-length -- seq' )
+    cut* drop compressable? [ extend-enough [ extended-sub? ]
+    keep swap [ fail ] unless ] [ fail ] if ;
+
+: prepare-removing ( seq -- seq' )
+    dup length 1 <= [ ] [ dup deep-clone
+    dup length dup 2 - 0 swap [a,b] >array amb
+    [ swap ] dip try-removing ] if ;
+    
