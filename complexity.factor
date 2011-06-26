@@ -84,7 +84,6 @@ DEFER: prepare-sequence-cost
     [ remove-second 3 cut prepare-sequence-cost append ]
     [ continue-preparing ] if ;
     
-
 : prepare-sequence-cost ( seq -- seq' )
     dup length 4 >=
     [ delete-where ]
@@ -97,10 +96,12 @@ M: sequence cost>>
     0 [ cost>> + ] reduce ; 
 
 M: integer cost>>
-    generic-cost ;
+    ! generic-cost ;
+    bits-cost ;
 
 M: word cost>>
-    generic-cost ;
+    ! generic-cost ;
+    { { C [ 0 ] } { I [ 1 ] } } case ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !             APPLY COPY                   !
@@ -289,7 +290,8 @@ PRIVATE>
     } } case use ;
 
 : times-list ( seq -- seq times )
-    dup length 1 [a,b] >array ;
+    ! dup length 1 [a,b] >array ;
+    dup length 1array ;
 
 : try-times ( seq op -- seq' )
     [ times-list amb
@@ -328,6 +330,7 @@ DEFER: try-on-list
 
 : try-operator ( seq -- seq' )
     { } swap { C I } amb 
+    ! { } swap { C } amb 
     debug get [ nl "Trying with operator" print dup . ] when
     try-on-list drop append ;
 
@@ -360,5 +363,5 @@ DEFER: try-on-list
 
 : compress ( seq -- seq' )
     dup is-max-compressed? [ dup deep-clone try-operator
-    dup is-max-compressed? [ nip ] [ compare-costs [ ] [ fail ] if ]
-    if ] unless ;
+    dup is-max-compressed? [ nip ] [ compare-costs [ ]
+    [ fail ] if ] if ] unless ;
