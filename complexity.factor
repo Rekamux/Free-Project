@@ -278,33 +278,11 @@ PRIVATE>
 !           COMPRESSION              !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-: sizes-list ( seq -- seq sizes )
-    dup length 1 swap [a,b] >array ;
-
-: try-size ( max-times seq op -- seq' )
-    used [ sizes-list amb
-
-    debug get [ nl "Trying with size" print dup . ] when
-
-    cut swap ] dip 
-
-    debug get [ "times: " print [ dup . ] 3dip 
-    "operator:" print dup . ] when
-
-    { { C [ search-copy ] } { I [ search-increment ]
-    } } case use ;
-
-: times-list ( seq -- seq times )
-    ! dup length 1 [a,b] >array ;
-    dup length 1array ;
-
-: try-times ( seq op -- seq' )
-    ! [ times-list amb
-    ! debug get [ nl "Trying with times" print dup . ] when
-    ! swap ] dip
-    [ dup length swap ] dip
-    ! debug get [ "operator:" print dup . ] when
-    try-size ;
+: try ( seq size op -- seq' )
+    3dup drop swap length > [ 2drop ]
+    [ [ [ drop length ] 2keep cut swap ] dip 
+    { { C [ search-copy ] } { I [ search-increment ] } }
+    case ] if ;
 
 : no-op ( seq -- empty seq f )
     { } swap f ;
@@ -325,19 +303,26 @@ PRIVATE>
 
 DEFER: try-on-list
 
-: try-on-list-unsafe ( done rest op -- done' rest' op )
-    [ try-times begins-with-op? ] keep swap
-    [ [ append ] 2dip try-on-list ] [ rot drop ] if ;
+: try-on-list-unsafe
+( done rest size op -- done' rest' size op )
+    [ try begins-with-op? ] 2keep rot
+    [ [ append ] 3dip try-on-list ] [ [ drop ] 3dip ] if ;
 
-: try-on-list ( done rest op -- done' rest' op )
-    [ dup empty? ] dip swap [ ] 
+: try-on-list ( done rest size op -- done' rest' size op )
+    [ dup empty? ] 2dip rot [ ]
     [ try-on-list-unsafe ] if ;
 
+: sizes-list ( seq -- seq sizes )
+    dup length 2 / 1 swap [a,b] >array ;
+
+: try-sizes ( seq op -- seq' )
+    [ sizes-list amb ] dip
+    [ { } ] 3dip
+    try-on-list 2drop append ;
+
 : try-operator ( seq -- seq' )
-    { } swap { C I } amb 
-    ! { } swap { C } amb 
-    debug get [ nl "Trying with operator" print dup . ] when
-    try-on-list drop append ;
+    { C I } amb 
+    try-sizes ;
 
 : c-max? ( seq -- ? )
     dup length 2 = [ last integer? ] [ drop f ] if ;
