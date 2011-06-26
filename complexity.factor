@@ -371,11 +371,21 @@ DEFER: try-on-list
     dup is-max-compressed? [ nip ] [ compare-costs [ compress ]
     [ fail ] if ] if ] unless ;
 
-: compress-regarding ( searched seq -- seq' )
-    dup is-max-compressed? [ dup deep-clone try-operator
-    dup is-max-compressed? [ nip ] [ 
-    3dup nip = [ set-debug compare-costs reset-debug drop ]
-    [ compare-costs [ [ compress-regarding ] 2keep drop ]
-    [ fail ] if ] if ] if ] unless nip ;
+! : compress-regarding ( searched seq -- seq' )
+!     dup is-max-compressed? [ dup deep-clone try-operator
+!     dup is-max-compressed? [ nip ] [ 
+!     3dup nip = [ set-debug compare-costs reset-debug drop ]
+!     [ compare-costs [ [ compress-regarding ] 2keep drop ]
+!     [ fail ] if ] if ] if ] unless nip ;
 
-    
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!          CONTINUING            !
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+: increment-times ( optimal -- incremented )
+    2 cut* unclip 1 + prefix append ;
+
+: logic-extend ( seq -- seq' )
+    { t f } amb
+    [ compress ] when dup is-max-compressed?
+    [ increment-times decompress ] when ;
