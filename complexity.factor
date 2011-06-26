@@ -198,9 +198,13 @@ DEFER: decompress
 : extract-same-size ( what rest -- rest' fitting )
     [ length ] dip swap cut swap ;
 
+: incrementable? ( what where -- ? )
+    [ [ dup extend ] dip swap nth integer? ] all? nip ;
+
 : extract-increment ( what where -- incremented )
-    [ { } ] 2dip increment-and-append
-    drop nip ;
+    2dup incrementable?
+    [ [ { } ] 2dip increment-and-append drop nip ]
+    [ 2drop f ] if ;
 
 : is-increment? ( what where rest -- rest' found )
     3dup nip fit? [ [ 2nip ] [ nip extract-same-size ]
@@ -294,11 +298,11 @@ PRIVATE>
     dup length 1array ;
 
 : try-times ( seq op -- seq' )
-    [ times-list amb
-    debug get [ nl "Trying with times" print dup . ] when
-    swap ]
-    dip 
-    debug get [ "operator:" print dup . ] when
+    ! [ times-list amb
+    ! debug get [ nl "Trying with times" print dup . ] when
+    ! swap ] dip
+    [ dup length swap ] dip
+    ! debug get [ "operator:" print dup . ] when
     try-size ;
 
 : no-op ( seq -- empty seq f )
