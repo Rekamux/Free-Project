@@ -328,13 +328,12 @@ DEFER: try-on-list
     [ drop f ] if ;
 
 : compare-costs ( before after -- best after-best? )
-    debug get
-    [ nl "Comparing " print [ dup . ] bi@ "Sizes are" print ]
-    when
-    2dup [ cost>> 
-    debug get [ dup . ] when
-    ] bi@ > [ nip t ] [ drop f ] if 
-    debug get [ "Best is" print [ dup . ] dip ] when ;
+    2dup [ cost>> ] bi@ >= [ nip t ] [ drop f ] if ;
+
+: compare-costs-verbose ( before after -- best after-best? )
+    nl "Comparing " print [ dup . ] bi@ "Sizes are" print
+    2dup [ cost>> dup . ] bi@ > [ nip t ] [ drop f ] if
+    "Best is" print [ dup . ] dip ;
 
 : compress ( seq -- seq' )
     dup is-max-compressed? [ dup deep-clone try-operator
@@ -344,7 +343,7 @@ DEFER: try-on-list
 : compress-regarding ( searched seq -- seq' )
     dup is-max-compressed? [ dup deep-clone try-operator
     dup is-max-compressed? [ nip ] [ 
-    3dup nip = [ set-debug compare-costs reset-debug drop ]
+    3dup nip = [ compare-costs-verbose drop ]
     [ compare-costs [ [ compress-regarding ] 2keep drop ]
     [ fail ] if ] if ] if ] unless nip ;
 
@@ -376,3 +375,6 @@ DEFER: try-on-list
     dup length dup 2 - 0 swap [a,b] >array amb
     [ swap ] dip try-removing ] if ;
     
+: extend-logic ( seq -- seq' )
+    { t f } amb
+    [ prepare-removing ] when ;
