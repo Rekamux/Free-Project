@@ -175,18 +175,17 @@ DEFER: decompress
     [ [ dup length ] dip swap cut [ [ = ] keep ] dip rot
     [ nip t ] [ append f ] if ] if ;
 
-: test-max-times-copy
-( max-times times what rest -- max-times times' what rest' )
-    [ 2dup > ] 2dip rot
-    [ [ dup ] dip is-copy?
-    [ [ 1 + ] 2dip test-max-times-copy ] when ] when ;
+: test-copy
+( times what rest -- times' what rest' )
+    [ dup ] dip is-copy?
+    [ [ 1 + ] 2dip test-copy ] when ;
 
 : create-copy ( what times -- seq )
     [ dup length 1 = [ first ] when ] dip C 3array ;
 
-: search-copy ( max-times seq what -- seq' )
-    swap [ 1 ] 2dip test-max-times-copy
-    -rot swap create-copy swap append nip ;
+: search-copy ( seq what -- seq' )
+    swap [ 1 ] 2dip test-copy
+    -rot swap create-copy swap append ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !        INCREMENT SEARCH             !
@@ -212,22 +211,10 @@ DEFER: decompress
     [ drop extract-increment ] 3tri = 
     [ nip t ] [ drop f ] if ] [ 2nip f ] if ;
 
-: still-time?
-( max-times times a b c -- max-times times a b c ? )
-    [ 2dup > ] 3dip [ rot ] dip swap ;
-
-: test-max-times-increment
-( max-times times what where rest --
-max-times times' what where rest' )
-    ! " test-max-times-increment" print
-    ! [ [ dup . ] bi@ ] 3dip [ dup . ] tri@
-    
-    still-time? [ [ 2dup ] dip is-increment?
-    [ [ 1 + ] 3dip test-max-times-increment ] when ] when
-
-    ! " test-max-times-increment end" print
-    ! [ [ dup . ] bi@ ] 3dip [ dup . ] tri@
-    ;
+: find-increment
+( times what where rest -- times' what where rest' )
+    [ 2dup ] dip is-increment?
+    [ [ 1 + ] 3dip find-increment ] when ;
 
 SYMBOL: helper
 
@@ -249,28 +236,26 @@ SYMBOL: helper
     [ nip find-where ] 3keep drop [ swap ] dip ]
     [ { } swap ] if ;
 
-: treat-no-increment ( first max-times what where seq -- seq' )
-    ! " treat-no-increment" print [ dup . ] tri@
-    [ 3drop dup length 1 = [ 1array ] unless 0 1 I 3array
+: treat-no-increment ( first what where seq -- seq' )
+    [ 2drop dup length 1 = [ 1array ] unless 0 1 I 3array
     append ] dip append ;
 
 : create-increment ( what where times -- seq )
     [ [ dup length 1 = [ first ] when ] bi@ ] dip I 4array ;
 
 : prepare-sequence
-( first max-times times what where seq -- seq' )
-    [ drop nip ] 2dip
+( first times what where seq -- seq' )
+    [ drop ] 2dip
     [ swap create-increment ] dip
     append ;
 
-: treat-increment ( first max-times what where seq -- seq' )
-    [ 1 ] 3dip test-max-times-increment
+: treat-increment ( first what where seq -- seq' )
+    [ 1 ] 3dip find-increment
     prepare-sequence ;
 PRIVATE>
 
-: search-increment ( max-times seq what -- seq' )
-    ! " search-increment" print [ dup . ] tri@
-    [ 2nip deep-clone ] 3keep prepare-where
+: search-increment ( seq what -- seq' )
+    dup deep-clone -rot prepare-where
     [ [ empty? ] bi@ or ] 2keep rot
     [ treat-no-increment ] [ treat-increment ] if ;
 
@@ -280,7 +265,7 @@ PRIVATE>
 
 : try ( seq size op -- seq' )
     3dup drop swap length > [ 2drop ]
-    [ [ [ drop length ] 2keep cut swap ] dip 
+    [ [ cut swap ] dip 
     { { C [ search-copy ] } { I [ search-increment ] } }
     case ] if ;
 
