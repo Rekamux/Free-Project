@@ -48,15 +48,16 @@ SYMBOL: LUL
     3 dupn LUL get remove
     insert LUL set ;
 
-GENERIC: use ( obj -- obj )
-
-M: sequence use
-    dup empty? [ ]
-    [ [ unclip [ use drop ] bi@ ] keep ] if ;
-
-M: integer use generic-use ;
-
-M: word use ;
+: use ( obj -- obj ) ;
+! GENERIC: use ( obj -- obj )
+! 
+! M: sequence use
+!     dup empty? [ ]
+!     [ [ unclip [ use drop ] bi@ ] keep ] if ;
+! 
+! M: integer use generic-use ;
+! 
+! M: word use ;
 
 : 2use ( obj1 obj2 -- obj1 obj2 )
     [ use ] bi@ ;
@@ -101,7 +102,7 @@ M: integer cost>>
 
 M: word cost>>
     ! generic-cost ;
-    { { C [ 0 ] } { I [ 1 ] } } case ;
+    { { C [ 0 ] } { I [ 0 ] } } case ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !             APPLY COPY                   !
@@ -233,15 +234,15 @@ SYMBOL: helper
 : inc-helper ( -- )
     helper get 1 + helper set ;
 
-: find-where-reduce-quot ( to from -- seq )
-    dup word? [ 2drop { } ]
-    [ 1 - =
-    [ { } helper get inc-helper prefix ] [ { } ] if ] if ;
+: find-where-map ( to from -- seq )
+    dup word? [ 2drop { } ] [ 1 - =
+    [ { } helper get prefix ] [ { } ] if ] if
+    inc-helper ;
 
 : find-where ( from to -- where )
     0 helper set
     [ extend ] bi@
-    [ find-where-reduce-quot ] [ append ] 2map-reduce ;
+    [ find-where-map ] [ append ] 2map-reduce ;
 
 : prepare-where ( seq what -- what where seq )
     swap 2dup fit? [ 2dup extract-same-size nip
@@ -367,5 +368,14 @@ DEFER: try-on-list
 
 : compress ( seq -- seq' )
     dup is-max-compressed? [ dup deep-clone try-operator
-    dup is-max-compressed? [ nip ] [ compare-costs [ ]
+    dup is-max-compressed? [ nip ] [ compare-costs [ compress ]
     [ fail ] if ] if ] unless ;
+
+: compress-regarding ( searched seq -- seq' )
+    dup is-max-compressed? [ dup deep-clone try-operator
+    dup is-max-compressed? [ nip ] [ 
+    3dup nip = [ set-debug compare-costs reset-debug drop ]
+    [ compare-costs [ [ compress-regarding ] 2keep drop ]
+    [ fail ] if ] if ] if ] unless nip ;
+
+    
