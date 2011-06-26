@@ -2,7 +2,9 @@
  PDFREADER = $(shell which evince || which acroread)
  LATEX     = pdflatex
 
- all: slides.pdf
+slides:: slides.pdf
+
+article:: article.pdf
 
  %.pdf: %.tex
 	 $(LATEX) $< $@
