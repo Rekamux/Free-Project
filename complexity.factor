@@ -264,6 +264,7 @@ PRIVATE>
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 : try ( seq size op -- seq' )
+    [ deep-clone ] 2dip
     3dup drop swap length > [ 2drop ]
     [ [ cut swap ] dip 
     { { C [ search-copy ] } { I [ search-increment ] } }
@@ -298,7 +299,7 @@ DEFER: try-on-list
     [ try-on-list-unsafe ] if ;
 
 : sizes-list ( seq -- seq sizes )
-    dup length 2 / 1 swap [a,b] >array ;
+    dup length 1 swap [a,b] >array ;
 
 : try-sizes ( seq op -- seq' )
     [ sizes-list amb ] dip
@@ -328,7 +329,7 @@ DEFER: try-on-list
     [ drop f ] if ;
 
 : compare-costs ( before after -- best after-best? )
-    2dup [ cost>> ] bi@ >= [ nip t ] [ drop f ] if ;
+    2dup [ cost>> ] bi@ > [ nip t ] [ drop f ] if ;
 
 : compare-costs-verbose ( before after -- best after-best? )
     nl "Comparing " print [ dup . ] bi@ "Sizes are" print
