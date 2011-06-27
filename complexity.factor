@@ -348,6 +348,10 @@ DEFER: try-on-list
     [ compare-costs [ [ compress-regarding ] 2keep drop ]
     [ fail ] if ] if ] if ] unless nip ;
 
+: compressable? ( seq -- seq' ? )
+    { t f } amb
+    [ compress t ] [ f ] if ;
+
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !          CONTINUING            !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -363,10 +367,6 @@ DEFER: try-on-list
     2dup deep-clone decompress dup length rot <=
     [ drop increment-times extend-enough ] [ 2nip ] if ;
 
-: compressable? ( seq -- seq' ? )
-    { t f } amb
-    [ compress t ] [ f ] if ;
-
 : try-removing ( orig-seq orig-length seq drop-length -- seq' )
     cut* drop compressable? [ extend-enough [ extended-sub? ]
     keep swap [ fail ] unless ] [ fail ] if ;
@@ -375,7 +375,23 @@ DEFER: try-on-list
     dup length 1 <= [ ] [ dup deep-clone
     dup length dup 2 - 0 swap [a,b] >array amb
     [ swap ] dip try-removing ] if ;
+
+: extract-elements ( list -- elements )
+    { } [ 2dup swap index [ drop ] [ prefix ] if ] reduce ;
+
+: several-amb ( list times -- elements )
+    dup zero? [ 2drop { } ]
+    [ 1 - [ several-amb ] 2keep drop amb prefix ] if ;
+
+: prepare-add ( seq -- seq' )
+    dup length 1 swap [a,b] >array amb
+    [ extract-elements ] 2keep drop several-amb
+    [ dup . ] bi@ nl
+    [ dup deep-clone ] dip suffix compressable?
+    [ nip increment-times decompress ] [ fail ] if ;
     
 : extend-logic ( seq -- seq' )
-    { t f } amb
-    [ prepare-removing ] when ;
+    deep-clone { t f } amb
+    [ prepare-removing "Found by removing elements" print ]
+    [ { t f } [ prepare-add "Found by adding elements" print ] 
+    when ] if ;
