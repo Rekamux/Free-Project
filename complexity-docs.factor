@@ -19,6 +19,14 @@ HELP: reset-LUL
     "."
 } ;
 
+HELP: insert
+{ $values { "obj" "an object" } { "seq" "a sequence" } }
+{ $description "Insert an element at the third position of the list." } ;
+
+HELP: generic-use
+{ $values { "obj" "an object" } }
+{ $description "Add an object to the " { $link LUL } "." } ;
+
 HELP: use
 { $values { "obj" "object used" } }
 { $description "Place an object on the top of " { $link LUL } } ;
@@ -31,7 +39,10 @@ HELP: used
 { $values { "obj" "object to be used" } { "garb" "anything" } }
 { $description "Place second object on the top of " { $link LUL } } ;
 
-{ LUL cost>> reset-LUL use 2use used } related-words
+{ LUL LUL-cost>> reset-LUL use 2use used } related-words
+
+
+
 
 HELP: bits-cost
 { $values { "val" "an integer" } { "bits" "an integer" } }
@@ -41,9 +52,32 @@ HELP: generic-cost
 { $values { "obj" "object to be evaluated" } { "cost" "result cost" } }
 { $description "Cost of an object regarding its position in " { $link LUL } } ;
 
-HELP: cost>>
+HELP: remove-second
+{ $values { "seq" "a sequence" } { "seq'" "a new sequence" } }
+{ $description "Drop second element of a list." } ;
+
+HELP: continue-preparing
+{ $values { "seq" "a sequence" } { "seq'" "a new sequence" } }
+{ $description "Prepare the sequence but the first element and prefix it." } ;
+
+HELP: delete-where
+{ $values { "seq" "a sequence" } { "seq'" "a new sequence" } }
+{ $description "Check if sequence begins with an " { $link I } " operator and delete 'where' argument. Then continue preparation of the rest of the sequence." } ;
+
+HELP: prepare-sequence-cost
+{ $values { "seq" "a sequence" } { "seq'" "a new sequence" } }
+{ $description "Check size and call " { $link delete-where } " if sequence is long enough." } ;
+
+HELP: LUL-cost>>
 { $values { "arg" "object to be evaluated" } { "cost" "result cost" } }
 { $description "Return the cost of an object regarding its position in " { $link LUL } "." } ;
+
+HELP: cost>>
+{ $values { "arg" "object to be evaluated" } { "cost" "result cost" } }
+{ $description "Return the cost of an object, using reducing " { $link cost>> } " call on a sequence or " { $link generic-cost } " on any other element." } ;
+
+
+
 
 HELP: C
 { $description "Used to apply do-copy on the rest of the list." } ;
@@ -63,6 +97,9 @@ HELP: apply-copy
 
 { C apply-copy copy } related-words
 
+
+
+
 HELP: I
 { $description "Used to apply do-increment on the rest of the list." } ;
 
@@ -76,6 +113,9 @@ HELP: increment
 { $description "Copy and then increment what times on where it is specified. Append results if what is a list" } ;
 
 { I apply-increment } related-words
+
+
+
 
 HELP: apply
 { $values { "seq" "a sequence" } { "word" "C or I" } { "seq'" "decompressed" } }

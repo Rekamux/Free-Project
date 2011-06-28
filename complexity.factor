@@ -28,28 +28,31 @@ SYMBOL: I
 !         LAST USED LIST                  !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+<PRIVATE
 SYMBOL: LUL
+PRIVATE>
 
 : reset-LUL ( -- )
     { C I } clone LUL set ;
 
+<PRIVATE
 : insert ( obj seq -- seq )
     2 cut [ swap suffix ] dip append ;
 
 : generic-use ( obj -- obj )
     3 dupn LUL get remove
     insert LUL set ;
+PRIVATE>
 
-: use ( obj -- obj ) ;
-! GENERIC: use ( obj -- obj )
-! 
-! M: sequence use
-!     dup empty? [ ]
-!     [ [ unclip [ use drop ] bi@ ] keep ] if ;
-! 
-! M: integer use generic-use ;
-! 
-! M: word use ;
+GENERIC: use ( obj -- obj )
+
+M: sequence use
+    dup empty? [ ]
+    [ [ unclip [ use drop ] bi@ ] keep ] if ;
+
+M: integer use generic-use ;
+
+M: word use ;
 
 : 2use ( obj1 obj2 -- obj1 obj2 )
     [ use ] bi@ ;
@@ -57,6 +60,7 @@ SYMBOL: LUL
 : used ( obj garb -- obj garb )
     [ use ] dip ;
 
+<PRIVATE
 : bits-cost ( val -- bits )
     dup 0 = [ ] [ log2 1 + ] if ;
 
@@ -81,6 +85,19 @@ DEFER: prepare-sequence-cost
     dup length 4 >=
     [ delete-where ]
     [ dup empty? [ ] [ continue-preparing ] if ] if ;
+PRIVATE>
+
+GENERIC: LUL-cost>> ( arg -- cost )
+
+M: sequence LUL-cost>>
+    deep-clone extend prepare-sequence-cost
+    0 [ LUL-cost>> + ] reduce ; 
+
+M: integer LUL-cost>>
+    generic-cost ;
+
+M: word LUL-cost>>
+    generic-cost ;
 
 GENERIC: cost>> ( arg -- cost )
 
@@ -89,11 +106,9 @@ M: sequence cost>>
     0 [ cost>> + ] reduce ; 
 
 M: integer cost>>
-    ! generic-cost ;
     bits-cost ;
 
 M: word cost>>
-    ! generic-cost ;
     { { C [ 0 ] } { I [ 0 ] } } case ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
