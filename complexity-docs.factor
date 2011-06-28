@@ -235,3 +235,27 @@ HELP: search-increment
 { $values { "seq" "a sequence" } { "what" "a sequence" } { "seq'" "a new sequence" } }
 { $description "Search 'what' at the beginning of 'seq', extract and append compressed result at the beginning of 'seq'." }
 { $examples { $example "USING: complexity prettyprint ;" "{ { 0 1 } 2 C { 0 2 } 3 C } { { 0 0 } 1 C } search-increment ." "{ { { 0 0 } 1 C } { 1 2 } 3 I }" } } ;
+
+
+
+
+HELP: try
+{ $values { "seq" "a sequence" } { "size" "a digit" } { "op" "a operator word" } }
+{ $description "Take 'size' first elements of 'seq' and search given operator on the rest." } ;
+
+HELP: no-op
+{ $description "Used in case there is no operator in given sequence." } ;
+
+HELP: begins-with-C?
+{ $values { "seq" "a sequence" } { "list-op" "a sequence" } { "rest" "a sequence" } { "?" "a boolean" } }
+{ $description "Check if given sequence begins with a C and its arguments in a suffixed way. Return extracted operator, rest and true if found, or an empty sequence, the same sequence and false if not." } ;
+
+HELP: begins-with-I?
+{ $values { "seq" "a sequence" } { "list-op" "a sequence" } { "rest" "a sequence" } { "?" "a boolean" } }
+{ $description "Check if given sequence begins with a I and its arguments in a suffixed way. Return extracted operator, rest and true if found, or an empty sequence, the same sequence and false if not." } ;
+
+HELP: begins-with-op?
+{ $values { "seq" "a sequence" } { "list-op" "a sequence" } { "rest" "a sequence" } { "?" "a boolean" } }
+{ $description "Check if given sequence begins with an operator and its arguments in a suffixed way. Return extracted operator, rest and true if found, or an empty sequence, the same sequence and false if not." } ;
+
+{ begins-with-C? begins-with-I? begins-with-C? } related-words
