@@ -102,6 +102,38 @@ HELP: extd-length
 
 
 
+HELP: none-sequence?
+{ $values { "seq" "a sequence" } { "?" "a boolean" } }
+{ $description "Return if all elements are not a sequence." } ;
+
+HELP: first-sequence-index
+{ $values { "seq" "a sequence" } { "n" "index" } }
+{ $description "Return first sequence's index or false if none is a sequence." } ;
+
+HELP: continue-and-append
+{ $values { "seq" "a sequence" } { "bef" "sequence before first sequence" } { "m" "previous index" } { "cs" "result of containing-sequence" } { "aft" "rest of the sequence" } { "n'" "new index" } { "seq'" "new sequence" } }
+{ $description "Check if requested index is in current sequence or not. If so, return the current sequence, and if not return " { $link containing-sequence } " given result." } ;
+
+HELP: continue-and-test
+{ $values { "seq" "a sequence" } { "n-i-xl" "index minus first sequence index minus first sequence extended length" } { "bef" "sequence before first sequence" } { "aft" "sequence after" } }
+{ $description "Call " { $link containing-sequence } " on the rest of the list and append the result to before sequence." } ;
+
+HELP: cut-and-continue
+{ $values { "n-i" "index minus first sequence index" } { "seq" "a sequence" } { "i" "first sequence index" } { "n'" "new index" } { "seq'" "new sequence" } }
+{ $description "Extract first sequence of the list, remove its length from the index and continue on the rest." } ;
+
+HELP: go-into
+{ $values { "n-i" "index minus first sequence index" } { "seq" "a sequence" } { "i" "first sequence index" } { "n'" "new index" } { "seq'" "new sequence" } }
+{ $description "Call " { $link containing-sequence } " on the first sequence." } ;
+
+HELP: try-on-first
+{ $values { "n-i" "index minus first sequence index" } { "seq" "a sequence" } { "i" "index of the first sequence" } { "n'" "new index" } { "seq'" "new sequence" } }
+{ $description "Check if first sequence's extended length is greater than n-i, which is the index of the rest of the list starting the first sequence." } ;
+
+HELP: test-on-first
+{ $values { "n" "index" } { "seq" "a sequence" } { "n'" "new index" } { "seq'" "new sequence" } }
+{ $description "Test if first sequence is far enough to be able to return n and try on it if not." } ;
+
 HELP: containing-sequence
 { $values { "n" "index of extended sequence" } { "seq" "a sequence" } }
 {
@@ -120,9 +152,13 @@ HELP: change-extended-nth
     { "seq" "a sequence" }
     { "quot" "a quotation with stack-effect ( x -- x )" }
 }
-{ $description "Apply given quotation on extended indexed element." } ;
+{ $description "Apply given quotation on extended indexed element." }
+{ $examples { $example "USING: complexity.tools ;" "5 { 0 1 2 { 3 4 { 5 6 } 7 } 8 } [ 1 + ] [ change-extended-nth ] 2keep drop ." "{ 0 1 2 { 3 4 { 6 6 } 7 } 8 }" } } ;
 
-{ extend extd-length set-extended-nth change-extended-nth } related-words
+{ extend extd-length set-extended-nth change-extended-nth containing-sequence } related-words
+
+
+
 
 HELP: deep-clone-sequence
 { $values { "seq" "a sequence" } { "seq'" "deep copied sequence" } }
@@ -131,6 +167,9 @@ HELP: deep-clone-sequence
 HELP: deep-clone
 { $values { "obj" "an object" } { "obj'" "deep copied object if sequence" } }
 { $description "Clone an object or " { $link deep-clone } "a sequence and all contained sequences." } ;
+
+
+
 
 HELP: contains-words?
 { $values { "seq" "a sequence" } { "?" "a boolean" } }
