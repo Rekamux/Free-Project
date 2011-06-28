@@ -15,15 +15,19 @@ USING:
     generalizations
     words
     formatting
+    macros
     ;
 
-SYMBOL: debug
+SYMBOL: verbose
 
-: set-debug ( -- )
-    t debug set ;
+: set-verbose ( -- )
+    t verbose set ;
 
-: reset-debug ( -- )
-    f debug set ;
+: reset-verbose ( -- )
+    f verbose set ;
+
+MACRO: print-verbose ( string -- quot )
+    [ verbose get [ printf dup . ] [ drop ] if ] curry ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !             OPERATORS                    !
@@ -163,7 +167,7 @@ DEFER: decompress
     [ [ decompress ] dip suffix ] if ;
 
 : decompress ( seq -- seq' )
-    dup empty? [ ]
+    deep-clone dup empty? [ ]
     [ decompress-last ] if
     dup contains-words? [ decompress ] when ;
 
@@ -350,9 +354,10 @@ DEFER: try-on-list
     [ fail ] if ] if ] if ] unless nip ;
 
 : compressable? ( seq -- seq' ? )
-    dup "Testing %[%d, %]" printf nl
+    "Testing:    " print-verbose
     { t f } amb
-    [ compress t ] [ f ] if ;
+    [ compress "Compressed: " print-verbose t ]
+    [ f ] if ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !          CONTINUING            !
@@ -385,7 +390,8 @@ DEFER: try-on-list
 
 : several-amb ( list times -- elements )
     dup zero? [ 2drop { } ]
-    [ 1 - [ several-amb ] 2keep drop amb suffix ] if ;
+    [ 1 - [ several-amb
+    ] 2keep drop amb suffix ] if ;
 
 : prepare-add ( seq -- seq' )
     dup length 1 swap [a,b] >array amb
@@ -395,8 +401,9 @@ DEFER: try-on-list
     
 : extend-logic ( seq -- seq' )
     deep-clone { t f } amb
-    [ prepare-removing dup "--Found %[%d, %]" printf nl ]
-    [ { t f } [ prepare-add dup "--Found %[%d, %]" printf nl ] 
+    [ prepare-removing "Found rmv:  " print-verbose ]
+    [ { t f } amb 
+    [ prepare-add "Found add:  " print-verbose ] 
     when ] if ;
 
 : extend-logic-all ( seq -- all-seq )
