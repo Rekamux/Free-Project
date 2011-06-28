@@ -3,6 +3,7 @@
         help.syntax
         complexity
         complexity.private
+        complexity.tools
         ;
 
 HELP: LUL
@@ -84,7 +85,7 @@ HELP: C
 
 HELP: copy
 { $values { "what" "what to copy" } { "times" "times applied" } }
-{ $description "Copy what times and concat them if they are sequences" } ;
+{ $description "Copy what times and append them if they are sequences" } ;
 
 HELP: apply-copy
 { $values { "list" "a sequence" } { "decompressed" "decompressed sequence using copy" } }
@@ -100,6 +101,22 @@ HELP: apply-copy
 
 
 
+HELP: suffix-or-append
+{ $values { "seq" "a sequence" } { "obj" "an object" } }
+{ $description "Consider if given object is a sequence or not and append it or suffix it." } ;
+
+HELP: increment-somewhere
+{ $values { "what" "sequence or object to be incremented" } { "where" "extended indexes" } }
+{ $description "Increment 'what' at " { $link extend } "ed indexes given by 'where'." } ;
+
+HELP: increment-and-append
+{ $values { "done" "treated sequence" } { "what" "sequence or object to be incremented" } { "where" "extended indexes" } }
+{ $description "Increment given 'what' at 'where', append it to 'done' and decrement times." } ;
+
+HELP: decrement-times
+{ $values { "done" "treated sequence" } { "what" "sequence or object to be incremented" } { "where" "extended indexes" } { "times" "remaining times" } }
+{ $description "Decrement application times of the increment operator" } ;
+
 HELP: I
 { $description "Used to apply do-increment on the rest of the list." } ;
 
@@ -112,7 +129,11 @@ HELP: increment
 } 
 { $description "Copy and then increment what times on where it is specified. Append results if what is a list" } ;
 
-{ I apply-increment } related-words
+HELP: apply-increment
+{ $values { "list" "a sequence" } { "decompressed" "decompressed sequence" } }
+{ $description "Use three first elements of the list, call " { $link increment } " on them and append the result on the list." } ;
+
+{ I apply-increment increment } related-words
 
 
 
