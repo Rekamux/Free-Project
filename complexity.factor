@@ -177,6 +177,7 @@ DEFER: decompress
 !            COPY SEARCH             !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+<PRIVATE
 : is-copy? ( what rest -- rest' found )
     [ dup length ] bi@ rot < [ nip f ]
     [ [ dup length ] dip swap cut [ [ = ] keep ] dip rot
@@ -189,6 +190,7 @@ DEFER: decompress
 
 : create-copy ( what times -- seq )
     [ dup length 1 = [ first ] when ] dip C 3array ;
+PRIVATE>
 
 : search-copy ( seq what -- seq' )
     swap [ 1 ] 2dip test-copy

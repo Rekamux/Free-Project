@@ -144,9 +144,28 @@ HELP: apply
 
 HELP: decompress-last
 { $values { "seq" "a sequence" } { "seq'" "decompressed" } }
-{ $description "Apply last element on the rest of the list. It must be " { $link C } " or " { $link I } "." } ;
+{ $description "Apply last element on the rest of the list. It must be " { $link C } " or " { $link I } ", or a digit." } ;
 
 HELP: decompress
 { $values { "seq" "a sequence" } { "seq'" "decompressed" } }
 { $description "Decompress sequence while there are still words on it." } ;
 
+
+
+
+HELP: is-copy?
+{ $values { "what" "copied?" } { "rest" "a sequence" } { "rest'" "a new sequence" } { "found" "a boolean" } }
+{ $description "Test if the beginning of given sequence is a copy of 'what', and return resulted boolean." } ;
+
+HELP: test-copy
+{ $values { "times" "times copied so far" } { "what" "that is copied" } { "rest" "a sequence" } }
+{ $description "Find how much what is copied in given sequence and return the rest." } ;
+
+HELP: create-copy
+{ $values { "what" "that is copied" } { "times" "times copied" } { "seq" "a sequence" } } 
+{ $description "Extract, when 'what' is a sequence of one element, its element and create an complete [WHAT] [WHERE] C compressed list." } ;
+
+HELP: search-copy
+{ $values { "seq" "a sequence" } { "what" "that is copied" } { "seq'" "a new sequence" } }
+{ $description "Search how many times 'what' is copied at the beginning of the list and append resulting operator in front of it." }
+{ $examples { $example "USING: complexity prettyprint ;" "{ 1 2 1 2 3 } { 1 2 } search-copy ." "{ { 1 2 } 3 C 3 }" } } ;
