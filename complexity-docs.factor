@@ -169,3 +169,69 @@ HELP: search-copy
 { $values { "seq" "a sequence" } { "what" "that is copied" } { "seq'" "a new sequence" } }
 { $description "Search how many times 'what' is copied at the beginning of the list and append resulting operator in front of it." }
 { $examples { $example "USING: complexity prettyprint ;" "{ 1 2 1 2 3 } { 1 2 } search-copy ." "{ { 1 2 } 3 C 3 }" } } ;
+
+
+
+
+HELP: fit?
+{ $values { "what" "a sequence" } { "rest" "a sequence" } { "?" "a boolean" } }
+{ $description "Return whereas 'what' fits in terms of length in 'rest' or not." } ;
+
+HELP: extract-same-size
+{ $values { "what" "a sequence" } { "rest" "a sequence" } { "fitting" "a sequence " } }
+{ $description "Extract a sequence of the same size as 'what' from 'rest'." } ;
+
+HELP: incrementable?
+{ $values { "what" "a sequence" } { "where" "extended indexes list" } { "?" "a boolean" } }
+{ $description "Return if all asked elements from 'where' are incrementable, eg they are digits." } ;
+
+HELP: extract-increment
+{ $values { "what" "a sequence" } { "where" "extended indexes list" } { "incremented" "a sequence" } }
+{ $description "Increment 'what' at given 'where' or return f if not possible." } ;
+
+HELP: is-increment?
+{ $values { "what" "a sequence" } { "where" "extended indexes list" } { "rest" "a sequence" } { "found" "a boolean" } }
+{ $description "Extract increment from 'rest' and return the rest and t in case of success." } ;
+
+HELP: find-increment
+{ $values { "times" "a digit" } { "what" "a sequence" } { "where" "extended indexes list" } { "rest" "a sequence" } }
+{ $description "Recursive function which searches for 'what' in 'where' and updates 'times' and 'rest' until failure." } ;
+
+HELP: helper
+{ $description "A variable containing current " { $link extend } "ed index. Used by " { $link find-where } "." } ;
+
+HELP: inc-helper
+{ $description "Increment " { $link helper } "." } ;
+
+HELP: find-where-map
+{ $values { "to" "a digit" } { "from" "a digit" } { "seq" "a sequence" } }
+{ $description "Find out if 'to' is an increment of 'from' and return result in a list." } ;
+
+HELP: find-where
+{ $values { "from" "a sequence" } { "to" "a sequence" } { "where" "extended indexes list" } }
+{ $description "Create an " { $link extend } "ed indexes list regarding increments." } ;
+
+HELP: prepare-where
+{ $values { "seq" "a sequence" } { "what" "a sequence" } { "where" "extended indexes list" } }
+{ $description "Find " { $link extend } "ed indexes list and ordinate for further applications." } ;
+
+HELP: treat-no-increment
+{ $values { "first" "a sequence" } { "seq" "a sequence" } { "where" "a sequence" } { "where" "extended indexes list" } }
+{ $description "Generate resulting sequence if no increment is found." } ;
+
+HELP: create-increment
+{ $values { "seq" "a sequence" } { "what" "a sequence" } { "where" "extended indexes list" } }
+{ $description "Create a compressed list using " { $link I } " ." } ;
+
+HELP: prepare-sequence
+{ $values { "first" "a sequence" } { "times" "a digit" } { "seq" "a sequence" } { "what" "a sequence" } { "where" "extended indexes list" } }
+{ $description "Create and append I list on given sequence." } ;
+
+HELP: treat-increment
+{ $values { "first" "a sequence" } { "seq" "a sequence" } { "what" "a sequence" } { "where" "extended indexes list" } }
+{ $description "Treat sequence in case of increment found" } ;
+
+HELP: search-increment
+{ $values { "seq" "a sequence" } { "what" "a sequence" } { "seq'" "a new sequence" } }
+{ $description "Search 'what' at the beginning of 'seq', extract and append compressed result at the beginning of 'seq'." }
+{ $examples { $example "USING: complexity prettyprint ;" "{ { 0 1 } 2 C { 0 2 } 3 C } { { 0 0 } 1 C } search-increment ." "{ { { 0 0 } 1 C } { 1 2 } 3 I }" } } ;

@@ -272,6 +272,7 @@ PRIVATE>
 !           COMPRESSION              !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+<PRIVATE
 : try ( seq size op -- seq' )
     [ deep-clone ] 2dip
     3dup drop swap length > [ 2drop ]
@@ -344,6 +345,7 @@ DEFER: try-on-list
     nl "Comparing " print [ dup . ] bi@ "Sizes are" print
     2dup [ cost>> dup . ] bi@ > [ nip t ] [ drop f ] if
     "Best is" print [ dup . ] dip ;
+PRIVATE>
 
 : compress ( seq -- seq' )
     dup is-max-compressed? [ dup deep-clone try-operator
@@ -367,6 +369,7 @@ DEFER: try-on-list
 !          CONTINUING            !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+<PRIVATE
 : increment-times ( optimal -- incremented )
     2 cut* unclip 1 + prefix append ;
 
@@ -402,6 +405,7 @@ DEFER: try-on-list
     [ dup extract-elements ] dip several-amb
     [ dup deep-clone ] dip append compressable?
     [ nip increment-times decompress ] [ fail ] if ;
+PRIVATE>
     
 : extend-logic ( seq -- seq' )
     deep-clone { t f } amb
