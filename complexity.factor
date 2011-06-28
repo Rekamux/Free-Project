@@ -14,6 +14,7 @@ USING:
     namespaces
     generalizations
     words
+    formatting
     ;
 
 SYMBOL: debug
@@ -349,6 +350,7 @@ DEFER: try-on-list
     [ fail ] if ] if ] if ] unless nip ;
 
 : compressable? ( seq -- seq' ? )
+    dup "Testing %[%d, %]" printf nl
     { t f } amb
     [ compress t ] [ f ] if ;
 
@@ -372,26 +374,30 @@ DEFER: try-on-list
     keep swap [ fail ] unless ] [ fail ] if ;
 
 : prepare-removing ( seq -- seq' )
-    dup length 1 <= [ ] [ dup deep-clone
+    dup length 1 <= [ fail ] [ dup deep-clone
     dup length dup 2 - 0 swap [a,b] >array amb
     [ swap ] dip try-removing ] if ;
 
 : extract-elements ( list -- elements )
-    { } [ 2dup swap index [ drop ] [ prefix ] if ] reduce ;
+    { }
+    [ 2dup swap index [ [ swap remove ] keep ] when prefix ]
+    reduce ;
 
 : several-amb ( list times -- elements )
     dup zero? [ 2drop { } ]
-    [ 1 - [ several-amb ] 2keep drop amb prefix ] if ;
+    [ 1 - [ several-amb ] 2keep drop amb suffix ] if ;
 
 : prepare-add ( seq -- seq' )
     dup length 1 swap [a,b] >array amb
-    [ extract-elements ] 2keep drop several-amb
-    [ dup . ] bi@ nl
-    [ dup deep-clone ] dip suffix compressable?
+    [ dup extract-elements ] dip several-amb
+    [ dup deep-clone ] dip append compressable?
     [ nip increment-times decompress ] [ fail ] if ;
     
 : extend-logic ( seq -- seq' )
     deep-clone { t f } amb
-    [ prepare-removing "Found by removing elements" print ]
-    [ { t f } [ prepare-add "Found by adding elements" print ] 
+    [ prepare-removing dup "--Found %[%d, %]" printf nl ]
+    [ { t f } [ prepare-add dup "--Found %[%d, %]" printf nl ] 
     when ] if ;
+
+: extend-logic-all ( seq -- all-seq )
+    [ extend-logic ] curry bag-of ;
