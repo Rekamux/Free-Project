@@ -2,6 +2,7 @@
         help.markup
         help.syntax
         complexity
+        complexity.private
         ;
 
 HELP: LUL

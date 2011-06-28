@@ -11,43 +11,53 @@ USING:
     namespaces
     words
     summary
+    formatting
     ;
 
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!           VERBOSE MODE               !
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+<PRIVATE
+SYMBOL: verbose
+PRIVATE>
+
+: set-verbose ( -- )
+    t verbose set ;
+
+: reset-verbose ( -- )
+    f verbose set ;
+
+MACRO: print-verbose ( string -- quot )
+    [ verbose get [ printf dup . ] [ drop ] if ] curry ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !           CONTINUATIONS                 !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-! Used to store next failure action
+<PRIVATE
 SYMBOL: fail*
 
-! Error definition
 ERROR: failure ;
 
-! In case of final failure
 M: failure summary drop "No more alternatives" ;
 
-! What to do in case of failure
-: fail ( -- * )
-    fail* get [ failure ] or call( -- * ) ;
-
-! Failure reset
-: reset ( -- )
-    f fail* set ;
-
-! Failure setter
 : set-fail ( quot: ( -- * ) -- )
 fail* get
     [ fail* set call ] 2curry fail* set ;
+PRIVATE>
 
-! Try all elements of a sequence and tries the next one in
-! case of failure
+: fail ( -- * )
+    fail* get [ failure ] or call( -- * ) ;
+
+: reset ( -- )
+    f fail* set ;
+
 : amb ( seq -- x )
     dup empty? [ fail ] [ [ unclip [
     [ amb swap continue-with ] 2curry set-fail
     ] dip ] curry callcc1 ] if ;
 
-! Try all alternatives of a quotation
 : bag-of ( quot: ( -- x ) -- seq )
     [ V{ } clone ] dip [ call( -- x ) swap push fail ] curry
     [ ] bi-curry [ { t f } amb ] 2dip if ;
@@ -69,10 +79,12 @@ MACRO: nunclip ( n -- quot )
 !         SEQUENCE EXTENSION           !
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+<PRIVATE
 : (extend) ( done rest -- done' rest' )
     dup empty? [ ]
     [ unclip dup sequence? [ { } swap (extend) drop swap 
     [ append ] dip ] [ swap [ suffix ] dip ] if (extend) ] if ;
+PRIVATE>
 
 : extend ( seq -- extended )
     { } swap (extend) drop ;

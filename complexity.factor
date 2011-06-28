@@ -14,20 +14,7 @@ USING:
     namespaces
     generalizations
     words
-    formatting
-    macros
     ;
-
-SYMBOL: verbose
-
-: set-verbose ( -- )
-    t verbose set ;
-
-: reset-verbose ( -- )
-    f verbose set ;
-
-MACRO: print-verbose ( string -- quot )
-    [ verbose get [ printf dup . ] [ drop ] if ] curry ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !             OPERATORS                    !
