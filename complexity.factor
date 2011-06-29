@@ -120,7 +120,7 @@ M: word cost>>
     dup empty? [ dup first sequence? [ concat ] when ] unless ;
 
 : apply-copy ( list -- decompressed )
-    2unclip copy append ;
+    2unclip-last copy append ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !           APPLY INCREMENT               !
@@ -150,7 +150,7 @@ PRIVATE>
     [ { } ] 3dip decrement-times 3drop ;
 
 : apply-increment ( list -- decompressed )
-    3unclip increment append ;
+    3unclip-last increment append ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !           DECOMPRESSION              !

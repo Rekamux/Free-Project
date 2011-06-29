@@ -62,18 +62,18 @@ PRIVATE>
     [ V{ } clone ] dip [ call( -- x ) swap push fail ] curry
     [ ] bi-curry [ { t f } amb ] 2dip if ;
 
-! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!       UNCLIP GENERALIZATION       !
-! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!       UNCLIP-LAST GENERALIZATION       !
+! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-MACRO: nunclip ( n -- quot )
+MACRO: nunclip-last ( n -- quot )
     [ [ cut* ] keep firstn ] curry ;
 
-: 2unclip ( list -- rest second first )
-    2 nunclip ;
+: 2unclip-last ( list -- rest second first )
+    2 nunclip-last ;
 
-: 3unclip ( list -- rest third second first )
-    3 nunclip ;
+: 3unclip-last ( list -- rest third second first )
+    3 nunclip-last ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !         SEQUENCE EXTENSION           !

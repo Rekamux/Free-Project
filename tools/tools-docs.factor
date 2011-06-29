@@ -48,38 +48,38 @@ HELP: bag-of
 
 
 
-HELP: nunclip
+HELP: nunclip-last
 { $values { "n" "count of elements to be taken out" } }
 {
     $description
-    "Generalization of unclip: get n first elements of a list and place them on the stack"
+    "Generalization of unclip-last: get n last elements of a list and place them on the stack"
 } ;
 
-HELP: 2unclip
+HELP: 2unclip-last
 {
     $values
     { "seq" "a sequence" }
-    { "rest" "without its two first elements" }
+    { "rest" "without its two last elements" }
     { "second" "second element" }
     { "first" "first element" }
 }
 {
     $description
-    "Take two first elements and place them on the stack"
+    "Take two last elements and place them on the stack"
 } ;
 
-HELP: 3unclip
+HELP: 3unclip-last
 {
     $values
     { "seq" "a sequence" }
-    { "rest" "without its three first elements" }
+    { "rest" "without its three last elements" }
     { "third" "third element" }
     { "second" "second element" }
     { "first" "first element" }
 }
-{ $description "Take three first elements and place them on the stack" } ;
+{ $description "Take three last elements and place them on the stack" } ;
 
-{ nunclip 2unclip 3unclip } related-words
+{ nunclip-last 2unclip-last 3unclip-last } related-words
 
 
 
