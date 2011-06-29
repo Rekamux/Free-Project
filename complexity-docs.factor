@@ -4,6 +4,7 @@
         complexity
         complexity.private
         complexity.tools
+        complexity.tools.private
         ;
 
 HELP: LUL
@@ -277,11 +278,11 @@ HELP: sizes-list
 
 HELP: try-sizes
 { $values { "seq" "a sequence" } { "op" "a word, " { $link C } " or " { $link I } } }
-{ $description "Extract sizes to be tested and test them with amb." } ;
+{ $description "Extract sizes to be tested and test them with " { $link amb } "." } ;
 
 HELP: try-operator
 { $values { "seq" "a sequence" } }
-{ $description "Run amb on " { $link C } " and " { $link I } "." } ;
+{ $description "Run " { $link amb } " on " { $link C } " and " { $link I } "." } ;
 
 HELP: c-max?
 { $values { "seq" "a sequence" } { "?" "a boolean" } }
@@ -322,3 +323,56 @@ HELP: compressable?
 
 
 
+HELP: increment-times
+{ $values { "optimal" "a sequence" } { "incremented" "a sequence" } }
+{ $description "Take a sequence optimally compressed and increments its main operator's times." } ;
+
+HELP: extended-sub?
+{ $values { "seq" "a sequence" } { "extended" "a sequence" } { "?" "a boolean" } }
+{ $description "Return if 'seq' is a subsequence at the beginning of 'extended'." } ;
+
+HELP: extend-enough
+{ $values { "length" "a digit" } { "seq" "a sequence" } }
+{ $description "Extend 'seq' until its length is bigger or equal than 'length." } ;
+
+HELP: try-removing
+{ $values { "orig-seq" "a sequence" } { "orig-length" "a digit" } { "seq" "a sequence" } { "drop-length" "a digit" } }
+{ $description "Try to remove 'drop-length' to 'seq', compress it and test if extended enough result contains 'orig-seq'. " { $link fail } " if it fails." } ;
+
+HELP: prepare-removing
+{ $values { "seq" "a sequence" } }
+{ $description "Call an " { $link  amb } " on all possible removable sizes and try them." } ;
+
+
+
+
+HELP: extract-elements
+{ $values { "list" "a sequence" } { "elements" "a sequence" } }
+{ $description "Extract all elements contained in given sequence once, ordered from older to last used." } ;
+
+HELP: several-amb
+{ $values { "elements" "a sequence" } { "times" "a digit" } { "elements-to-add" "a sequence" } }
+{ $description "Call " { $link amb } " on any combination of length 'times' from 'elements'." } ;
+
+HELP: prepare-add
+{ $values { "seq" "a sequence" } }
+{ $description "Call an " { $link amb } " on all possible combinations' length, exxtract elements and then call " { $link several-amb } "." } ;
+
+HELP: extend-logic
+{ $values { "seq" "a sequence" } }
+{ $description "Will try to extend using only copy and increment a given list. Will first try to remove from 0 to length minus 2 elements and then will try to add sequence's elements up to its initial length. This second part is quite expensive (~n! complexity), but chances are high that it will find something before and then return. Activate " { $link verbose } "-mode if you want to see more details about searched possibilities." }
+{ $examples
+    { $example "USING: complexity prettyprint ;" "{ 1 2 } extend-logic ." "{ 1 2 3 }" }
+    { $example "USING: complexity prettyprint ;" "{ 1 1 } extend-logic ." "{ 1 1 1 }" }
+    { $example "USING: complexity prettyprint ;" "{ 1 2 2 3 3 3 } extend-logic ." "{ 1 2 2 3 3 3 4 4 4 4 }" }
+    { $example "USING: complexity prettyprint ;" "{ 1 2 2 3 } extend-logic ." "{ 1 2 2 3 3 4 }" }
+    { $example "USING: complexity prettyprint ;" "{ 1 2 2 3 3 3 4 } extend-logic ." "{ 1 2 2 3 3 3 4 4 4 4 } " }
+    { $example "USING: complexity prettyprint ;" "{ 1 1 2 1 2 3 1 1 2 1 2 3 1 2 3 4 } extend-logic ." "{ 1 1 2 1 2 3 1 1 2 1 2 3 1 2 3 4 1 1 2 1 2 3 1 2 3 4 1 2 3 4 5 }" }
+} ;
+
+HELP: extend-logic-all
+{ $values { "seq" "a sequence" } { "all-seq" "a sequence of sequences" } }
+{ $description "Construct a " { $link bag-of } " all " { $link extend-logic } " results. As its complexity is n!, this call may take a while, but all found possibilities are returned." }
+{ $examples { $example "USING: complexity prettyprint ;" "{ 1 1 1 1 2 2 } extend-logic-all ." "Will contain among others: { 1 1 1  1 2 2  1 3 3 }, { 1 1 1 1  2 2 2 2  3 3 3 3 }, { 1 1 1 1  2 2 2 2 2  3 3 3 3 3 3 }, { 1 1 1 1  2 2 2 2 2 2  3 3 3 3 3 3 3 3 } and { 1 1 1 1  2 2 2 2 2 2 2 2  3 3 3 3 3 3 3 3 3 3 3 3 }." } } ;
+
+{ extend-logic extend-logic-all } related-words

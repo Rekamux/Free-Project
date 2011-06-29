@@ -394,7 +394,7 @@ PRIVATE>
     [ 2dup swap index [ [ swap remove ] keep ] when prefix ]
     reduce ;
 
-: several-amb ( list times -- elements )
+: several-amb ( elements times -- elements-to-add )
     dup zero? [ 2drop { } ]
     [ 1 - [ several-amb
     ] 2keep drop amb suffix ] if ;
