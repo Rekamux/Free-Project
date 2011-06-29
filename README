@@ -1,0 +1,33 @@
+Free-Project
+Axel Schumacher www.axelschumacher.fr
+Télécom ParisTech
+
+Factor library implementing a way to extend logically digits sequence using only copy and increment. Its possibilities are although interesting as it often returns results we didn't thought about and absolutely logical.
+
+
+INSTALL FACTOR:
+
+Visit Factor website: http://factorcode.org/, and install latest stable version.
+
+
+INSTALL LIBRARY:
+
+Copy all files and directories in a folder named 'complexity' in factor/work/
+
+
+LAUNCH AND TEST:
+
+Launch factor, either using its executable, or without its GUI using:
+rlwrap ./factor -run=listener
+
+Then enter
+USE: complexity
+and test it with for example:
+{ 1 2 2 3 3 3 } extend-logic .
+
+
+READING DOCUMENTATION:
+
+A whole documentation has been written around this library, even for private words.
+To read it, the easiest way is to click on the 'HELP' button in the GUI after having loaded 'complexity' library and search 'complexity'.
+You can select complexity for main words, complexity.private for inside words, complexity.tools for useful tools (that may also be useful in other libraries), and complexity.tools.private for its inside words.
