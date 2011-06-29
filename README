@@ -31,3 +31,25 @@ READING DOCUMENTATION:
 A whole documentation has been written around this library, even for private words.
 To read it, the easiest way is to click on the 'HELP' button in the GUI after having loaded 'complexity' library and search 'complexity'.
 You can select complexity for main words, complexity.private for inside words, complexity.tools for useful tools (that may also be useful in other libraries), and complexity.tools.private for its inside words.
+
+
+USE OF FACTOR:
+
+Some tutorials are available on the Internet, but I will soon release a tutorial on my website (www.axelschumacher.fr).
+
+
+ARTICLE:
+
+make article
+
+
+SLIDES:
+
+
+make slides
+
+
+CLEAN:
+
+
+make clean
