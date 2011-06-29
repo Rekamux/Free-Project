@@ -18,7 +18,7 @@ HELP: print-verbose
 { $values { "string" "a string" } }
 { $description "Output given string followed by a not consumed sequence if " { $link verbose } " mode is activated." } ;
 
-{ set-verbose reset-verbose print-verbose } related-words
+{ set-verbose reset-verbose print-verbose verbose } related-words
 
 
 
