@@ -259,3 +259,66 @@ HELP: begins-with-op?
 { $description "Check if given sequence begins with an operator and its arguments in a suffixed way. Return extracted operator, rest and true if found, or an empty sequence, the same sequence and false if not." } ;
 
 { begins-with-C? begins-with-I? begins-with-C? } related-words
+
+
+
+
+HELP: try-on-list-unsafe
+{ $values { "done" "a sequence" } { "rest" "a sequence" } { "size" "a digit" } { "op" "a word, " { $link C } " or " { $link I } } }
+{ $description "Call recursively " { $link try-on-list } " until 'rest' doesn't contain an operator." } ;
+
+HELP: try-on-list
+{ $values { "done" "a sequence" } { "rest" "a sequence" } { "size" "a digit" } { "op" "a word, " { $link C } " or " { $link I } } }
+{ $description "Check if 'rest' is empty and then call " { $link try-on-list-unsafe } "." } ;
+
+HELP: sizes-list
+{ $values { "seq" "a sequence" } { "sizes" "a sequence of digits" } }
+{ $description "Extract all sizes that have to be tested." } ;
+
+HELP: try-sizes
+{ $values { "seq" "a sequence" } { "op" "a word, " { $link C } " or " { $link I } } }
+{ $description "Extract sizes to be tested and test them with amb." } ;
+
+HELP: try-operator
+{ $values { "seq" "a sequence" } }
+{ $description "Run amb on " { $link C } " and " { $link I } "." } ;
+
+HELP: c-max?
+{ $values { "seq" "a sequence" } { "?" "a boolean" } }
+{ $description "Check if a sequence is reduced to a single " { $link C } " operator." } ;
+
+HELP: i-max?
+{ $values { "seq" "a sequence" } { "?" "a boolean" } }
+{ $description "Check if a sequence is reduced to a single " { $link I } " operator." } ;
+
+HELP: is-max-compressed?
+{ $values { "seq" "a sequence" } { "?" "a boolean" } }
+{ $description "Check if a sequence is reduced to a single " { $link C } " or " { $link I } "  operator." } ;
+
+HELP: is-interesting?
+{ $values { "seq" "a sequence" } { "?" "a boolean" } }
+{ $description "Check if a sequence is max compressed and if its main operator doesn't apply only once." } ;
+
+HELP: compare-costs
+{ $values { "before" "a sequence" } { "after" "a sequence" } { "best" "a sequence" } { "after-best?" "a boolean" } }
+{ $description "Compare two sequences using " { $link cost>> } " and return best one indicating if it was the second one." } ;
+
+HELP: compare-costs-verbose
+{ $values { "before" "a sequence" } { "after" "a sequence" } { "best" "a sequence" } { "after-best?" "a boolean" } }
+{ $description "Call " { $link compare-costs } " in verbose mode." } ;
+
+HELP: compress
+{ $values { "seq" "a sequence" } }
+{ $description "Compress a sequence using " { $link compare-costs } " to choose what to keep or " { $link fail } " if all tested possibilities failed." } ;
+
+HELP: compress-regarding
+{ $values { "searched" "a sequence" } { "seq" "a sequence" } }
+{ $description "Work as " { $link compress } " but using " { $link compare-costs-verbose } " and stopping as soon it obtains 'searched': this is mainly used to precisely why it rejected a special compressed form by printing obtained costs." } ;
+
+HELP: compressable?
+{ $values { "seq" "a sequence" } { "?" "a boolean" } }
+{ $description "Call " { $link compress } " and return t if compressing succeeded." } ; 
+
+
+
+

@@ -328,13 +328,13 @@ DEFER: try-on-list
     [ [ last integer? ] [ second dup sequence? [ [ integer? ]
     all? ] [ integer? ] if ] bi and ] [ drop f ] if ;
 
-: is-interessant? ( seq -- ? )
+: is-max-compressed? ( seq -- ? )
     dup empty? [ drop f ] [ unclip-last dup word?
     [ { { C [ c-max? ] } { I [ i-max? ] } [ 2drop f ] } case ]
     [ 2drop f ] if ] if ;
 
-: is-max-compressed? ( seq -- ? )
-    dup is-interessant?
+: is-interesting? ( seq -- ? )
+    dup is-max-compressed?
     [ 2 cut* nip first 1 = not ]
     [ drop f ] if ;
 
@@ -348,13 +348,13 @@ DEFER: try-on-list
 PRIVATE>
 
 : compress ( seq -- seq' )
-    dup is-max-compressed? [ dup deep-clone try-operator
-    dup is-max-compressed? [ nip ] [ compare-costs [ compress ]
+    dup is-interesting? [ dup deep-clone try-operator
+    dup is-interesting? [ nip ] [ compare-costs [ compress ]
     [ fail ] if ] if ] unless ;
 
 : compress-regarding ( searched seq -- seq' )
-    dup is-max-compressed? [ dup deep-clone try-operator
-    dup is-max-compressed? [ nip ] [ 
+    dup is-interesting? [ dup deep-clone try-operator
+    dup is-interesting? [ nip ] [ 
     3dup nip = [ compare-costs-verbose drop ]
     [ compare-costs [ [ compress-regarding ] 2keep drop ]
     [ fail ] if ] if ] if ] unless nip ;
@@ -362,8 +362,7 @@ PRIVATE>
 : compressable? ( seq -- seq' ? )
     "Testing:    " print-verbose
     { t f } amb
-    [ compress "Compressed: " print-verbose t ]
-    [ f ] if ;
+    [ [ compress "Compressed: " print-verbose ] when ] keep ;
 
 ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !          CONTINUING            !
