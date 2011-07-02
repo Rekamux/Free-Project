@@ -56,11 +56,11 @@ This is where we can introduce the notion of 'complexity', and more especially K
 
 In other words, this complexity has the particularity to highly depends of using person, and is therefore really difficult to use inside a program.
 
-Using this complexity, one could define $1\ 2\ 2\ 3\ 3\ 3$ as 'count from one and repeat each number as much as itself', which is really easier to understand, memorize and extend for an human than a random sequence, like a telephone or a credit card number.
+Using this complexity, one could define $1\ 2\ 2\ 3\ 3\ 3$ as 'count from one and repeat each number as much as itself', which is really easier to understand, memorize and extend for an human than a random sequence, like a telephone or credit card number.
 We will explore different ways to represent and manipulate such informations.
 
 An other way to compute a list's complexity would be to use \textit{short term memory}, a list or tree containing last used elements.
-An access to one of those elements would be its address for example binary coded.
+An access to one of those elements would be its binary coded address for example.
 This model is easily explainable considering that a human, if he was able to solve a problem using a specific operator, will naturally try it first when confronted to a new problem.
 This list is implemented but not used because of its unpredictable character.
 
@@ -68,7 +68,7 @@ That is why in present version a standard \textit{binary coding} is used to comp
 
 Given a way to compute complexity, one can try to compress a list using \textit{operators} while resulting complexity is lower than initial sequence's one.
 
-\section{Tentatives}
+\section{Attempts}
 
 \subsection{Three operators}
 
@@ -77,16 +77,16 @@ At first, I thought about using Factor's \textit{tuples}, special sequences of f
 I defined a tuple \textit{operator} containing a field named \textit{times}.
 Operator had the following methods, or \textit{generic functions} in Factor:
 \begin{itemize}
-  \item{cost, a function returning a operator's cost regarding its fields values. At this time, I wasn't thinking about short term memory.}
-  \item{apply, a function which uses a digit and generate a sequence by uncompressing this operator on it.}
+  \item{cost, a function returning an operator's cost regarding its fields values.}
+  \item{apply, a function which uses a sequence and generate a sequence by uncompressing this operator on it (often only using its first element).}
   \item{search, a function which tries to find current operator's application on a sequence.}
 \end{itemize}
 
 Given those methods, I defined three operators:
 \begin{itemize}
-  \item{A copy operator: using its predecessor's \textit{times}, copies given argument \textit{times} }
-  \item{An increment operator: increments and copy by one given argument \textit{times}. If this argument is an operator, it will copy it by incrementing its \textit{times} field. }
-  \item{A step operator: contains also a \textit{gap} argument and an \textit{operator} field, applies its operator by skipping as much elements as given by \textit{gap} on a list.}
+  \item{A copy operator: using its predecessor's \textit{times} field, copies given argument \textit{times} times. }
+  \item{An increment operator: increments and copy given argument \textit{times} times. If this argument is an operator, it will copy it by incrementing its \textit{times} field. }
+  \item{A step operator: also contains a \textit{gap} argument and an \textit{operator} field, applies its operator by skipping as much elements as given by \textit{gap} on a list.}
 \end{itemize}
 
 The step operator was useful for this case:
@@ -98,7 +98,8 @@ $$(step\ operator\ times(4)\ gap(1)\ operator(increment\ times(1)))\ 1\ 2\ 3\ 4$
 The step operator will apply three times with a gap of one. As between each gap we only have one element, the increment operator in \textit{operator} field only applies once each time.
 The step operator will apply on the directly following element, the copy operator.
 A final compression would give:
-$$(step\ operator\ times(4)\ gap(1)\ operator(increment\ times(1)))\ (increment\ times(4))\ 1$$
+$$(step\ operator\ times(4)\ gap(1)\ operator(increment\ times(1)))$$
+$$(increment\ times(4))\ 1$$
 
 Speaking of complexity, if we count 1 for each operator plus recursive cost of all its arguments, the sequence $1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4$ will cost 23, where the compressed version costs 14.
 Hence, we can say that we have a compressed version.
@@ -112,9 +113,9 @@ A real complex, not useful nor handy object actually.
 
 An other problem is that it is difficult to extend a list, what specific operator should we times-increment? On this particular example, it is the first operator of the list, but can we be so sure about it? And at first how can we be sure about the fact that a list \textit{is} extendible?
 
-This solution displeased Jean-Louis Dessalles, because of this strange step-operator not really 'natural', and its difficulties to understand and use.
+This solution displeased Jean-Louis Dessalles, because of this strange step-operator not really 'natural', and its difficulties to be understood and used.
 That is why he asked me to only use two operators: copy and increment.
-His point was that in the previous example, increment operator would have been applied at the same time on copy operator and on digits.
+His point was that in the previous example, increment operator should have been applied at the same time on copy operator and on digits.
 That is why I should put the argument into the operator instead of leaving it on the list.
 Then, the increment operator would have seen a sequence of copy operator incrementing at the same time their \textit{times} and \textit{argument} fields.
 
@@ -122,12 +123,12 @@ Then, the increment operator would have seen a sequence of copy operator increme
 
 Now with this constraining consign, question was: "How can I apply different operators on the same object but on different fields?
 I imagined a solution that I found pretty ugly, but functional: copy-operator would now both now its \textit{argument} and \textit{times}.
-Increment-operator would moreover know where in his \textit{argument} it would apply: on its \textit{argument}, its \textit{times} or both.
+Increment-operator would inherit from copy-operator and moreover know where in his \textit{argument} it would apply: on its \textit{argument}, its \textit{times} or both. This information was stored on a \textit{where} field.
 
-Here is an application on previous example (first parenthesis contain \textit{argument} and second \textit{times}):
+Here is an application on previous example (first parenthesis contain \textit{argument}, second \textit{times} and last \textit{where}):
 $$1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4$$
-$$(increment(1)(1))\ (increment(2)(2))\ (increment(3)(3))$$
-$$(increment(increment(1)(1))(3)(both))$$
+$$(increment(1)(1)(arg))\ (increment(2)(2)(arg))\ (increment(3)(3)(arg))$$
+$$(increment(increment(1)(1)(arg))(3)(both))$$
 
 The \textit{where} field doesn't have any meaning when applying on a digit, and this is already a structural problem.
 This same field also doesn't have any meaning when applying on an increment-operator: it cannot apply on its argument because it is the contained increment-operator which takes care of that, and hence can only apply on its \textit{times}.
@@ -150,9 +151,9 @@ And a last one:
 $$(increment(increment(increment(1)(1)(arg))(1)(times))(4)(times))$$
 
 This solution is findable, putting apart the complexity problem (see below), and a huge problem which is at second iteration, how did he know that increment applied once applied only on times and not something else?
-I choose 'times' because it has hence been able to compress a last time given that all increment operators applied on 'times', but I had no right to do so.
+I chose 'times' because it has hence been able to compress a last time given that all increment operators applied on 'times', but I had no right to do so.
 
-During a meeting with both Samuel Tardieu and Jean-Louis Dessalles, this solution worked pretty well, putting apart some complexity problems: sometimes 'good' -read 'expected'- solutions were not kept because they costed more than uncompressed sequence.
+During a meeting with both Samuel Tardieu and Jean-Louis Dessalles, this solution worked pretty well, putting apart some complexity problems: sometimes 'good' (think 'expected') solutions were not kept because they costed more than uncompressed sequence.
 For example, with $1\ 2\ 2\ 3\ 3\ 4$, the program considered three increments of two times in array, but rejected it.
 For the 'dirty' where-to-apply solution, Samuel cleverly suggested that instead of a restrictive three-choices field, I should use a indexes list which could also handle deepness indicating where the increment-operator should apply. This is the solution I adopted and customized in my final version.
 
@@ -160,16 +161,23 @@ For the 'dirty' where-to-apply solution, Samuel cleverly suggested that instead 
 
 Current solution is axed on Factor's suffixed way: an operator is represented by a letter, $C$ for copy and $I$ for increment, and applies on a specified number of arguments \textit{before} it.
 Elements in a compressed sequence are only compressed sequences, digits or operators letters.
-Customized indexed work this way: increment operators own in their \textit{where} field a sequence of digits, which are indexes representing an element's absolute position in extended sequence.
+Customized indexes work this way: increment operators own in their \textit{where} field a sequence of digits, which are indexes representing an element's absolute position in extended \textit{argument}.
 For example, let us consider the following sequence:
-$$\{\ 0\ 1\ \{\ 2\ \{\ 3\ 4\ \}\ 5\ \{\ 6\ \}\ \}\ 7\ \{\ 8\ \}\ 9\ \}$$
-Digits represent each element's index.
-Hence, any deepness level can be reached, and no need is to recall structural information with for example tree indexes, in which case element 4 would be accessed with 2.1.1 instead of just 4.
+$$\{\ a_0\ a_1\ \{\ a_2\ \{\ a_3\ a_4\ \}\ a_5\ \{\ a_6\ \}\ \}\ a_7\ \{\ a_8\ \}\ a_9\ \}$$
+Indexes are used extended indexes.
+Hence, any deepness level can be reached, and no need is to recall structural information, like for example with tree indexes, in which case element $a_4$ would be accessed with $2.1.1$ instead of $4$.
 This notation is easier to manipulate and resulting \textit{where} sequence may even be compressed!
+
 Jean-Louis Dessalles wasn't really satisfied by this index solution: it wouldn't respect Kantian structural form of the model (we should be able to manipulate shapes or vegetables as well and using them all along the model) and structure is absolutely not represented using it.
 He suggested the use of masks, more 'natural' and compressed than my indexes notation, but it doesn't solve the structure's respect problem and is actually in bijection with my system (as it is more important to act simply and 'humanly' than saving RAM, we can neglect the compression difference).
 
-For easier representation, an \textit{argument} or a \textit{where} field reduced to only one argument is not contained into a sequence, but inserted as is.
+For easier representation, an \textit{argument} or a \textit{where} field reduced to only one element is not contained into a sequence, but inserted as is.
+
+We also define operators' arguments order:
+\begin{itemize}
+  \item{$WHAT\ TIMES\ C$}
+  \item{$WHAT\ WHERE\ TIMES\ I$}
+\end{itemize}
 
 Here is an example of using this system on our favorite example:
 $$1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4$$
@@ -191,7 +199,7 @@ TODO
 
 \subsection{Once applied increment operators}
 
-As we saw before, when we find an increment operator used only once (\textit{times} = 1), its \textit{where} field doesn't mean anything, as when decompressed, \textit{argument} is only extracted, $I$, \textit{times} and \textit{where} being simply removed form the sequence.
+As we saw before, when we find an increment operator used only once (\textit{times} = 1), its \textit{where} field doesn't mean anything, as when decompressed, \textit{argument} is only extracted, $I$, \textit{times} and \textit{where} fields being simply removed from the sequence.
 
 Normally, such a representation should be rejected because it is trivially less compressed than just writing \textit{argument} as is.
 It may be useful this example :
@@ -209,7 +217,7 @@ $$\{\ 1\ 0\ 1\ I\ \}\ \textcolor{green}{2}\ 2\ I$$
 $$\{\ 1\ 0\ 1\ I\ \}\ \textcolor{green}{2}\ 3\ I$$
 $$\{\ 1\ 0\ 1\ I\ \}\ \textcolor{green}{2}\ 4\ I$$
 Now, we would like to obtain
-$$\{\ \{\ 1\ 0\ 1\ I\ \}\ \{\ 0\ 2\ \}\ 3\ I\ \}\ 6\ 4\ I$$
+$$\{\ \{\ 1\ 0\ 1\ I\ \}\ 2\ 1\ I\ \}\ 6\ 4\ I$$
 but our program will \textcolor{red}{fail} when comparing $0$ and $2$.
 
 A solution would be to use a 'joker', like Factor's $f$ in order to warn when compared with an other value that this value has not been defined yet.
@@ -217,14 +225,14 @@ For now, the program is not able to solve this problem without removing the firs
 
 \subsection{Masks and indexes}
 
-An other way to improve the program is to solve the problem how to indicate where to apply the increment-operator in a natural, compressed and Kantian way.
+An other way to improve the program is to solve the 'how to indicate where to apply the increment-operator in a natural, compressed and Kantian way' problem.
 
-This problem has been there since the beginning of the project, and even if a lots of plus or minus elegant solutions has been found, a lot of work is to been done on this subject.
+It has been there since the beginning of the project, and even if a lots of plus or minus elegant solutions have been found, a lot of work is to been done on this subject.
 
-\subsection{Short memory}
+\subsection{Short term memory}
 
 As explained before, the use of short memory is not reliable and quite difficult to implement.
-Even though a whole implementation has been done, it is not used in final version because of its random characteristic.
+Even though a whole implementation has been done, it is not used in final version because of its random behaviour.
 
 An improvement would be to find a way to use it, while keeping this program's reliability and power.
 
@@ -233,7 +241,7 @@ An improvement would be to find a way to use it, while keeping this program's re
 This project has been an excellent way to use at a project scale a new and powerful language as Factor.
 
 It revealed itself difficult to use at first but incredibly efficient for this particular subject.
-The project itself proved to be harder than expected, because of its 'human' closely restriction.
+The project itself proved to be harder than expected, because of its 'human' restriction.
 It has been a opportunity to consider and try to bring solutions in a little known field.
 
 This was an enriching experience and it worthed spending time working on it.
