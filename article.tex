@@ -37,7 +37,8 @@ Its powerful and non-standard architecture make him a very interesting language 
 \section{Problematic}
 
 Humans' capability to compress and understand structures always fascinated computer sciences researchers.
-Humans are able to perfectly perform tasks as recognizing a person's face, understand a language or, in our scope of interest, understand and complete a list of digits, alphabetics or shapes. Those tasks are very difficult to efficiently complete for machines, even using the most powerful computers.
+Humans are able to perfectly perform tasks as recognizing a person's face, understand a language or, in our scope of interest, understand and complete a list of digits, alphabetics or shapes.
+Those tasks are very difficult to efficiently complete for machines, even using the most powerful computers.
 That is why a huge domain of research still exists in that field, always in the same goal: give machines more and more of our 'human intelligence'.
 
 \section{Basis}
@@ -54,7 +55,8 @@ This is where we can introduce the notion of 'complexity', and more especially K
 
 In other words, this complexity has the particularity to highly depends of using person, and is therefore really difficult to use inside a program.
 
-Using this complexity, one could define $1\ 2\ 2\ 3\ 3\ 3$ as 'count from one and repeat each number as much as itself', which is really easier to understand, memorize and extend for an human than a random sequence, like a telephone or a credit card number. We will explore different ways to represent and manipulate such informations.
+Using this complexity, one could define $1\ 2\ 2\ 3\ 3\ 3$ as 'count from one and repeat each number as much as itself', which is really easier to understand, memorize and extend for an human than a random sequence, like a telephone or a credit card number.
+We will explore different ways to represent and manipulate such informations.
 
 An other way to compute a list's complexity would be to use \textit{short term memory}, a list or tree containing last used elements.
 An access to one of those elements would be its address for example binary coded.
@@ -92,15 +94,59 @@ When compressed once using copy operator, it gave:
 $$(copy\ times(1))\ 1\ (copy\ times(2))\ 2\ (copy\ times(3))\ 3\ (copy\ times(4))\ 4$$
 Here, we can easily see that we have an increment on the digits and on the operators, but separated by one element each time. Using step operator, it gives:
 $$(step\ operator\ times(4)\ gap(1)\ operator(increment\ times(1)))\ 1\ 2\ 3\ 4$$
-The step operator will apply three times with a gap of one. As between each gap we only have one element, the increment operator in \textit{operator} field only applies once each time. The step operator will apply on the directly following element, the copy operator.
+The step operator will apply three times with a gap of one. As between each gap we only have one element, the increment operator in \textit{operator} field only applies once each time.
+The step operator will apply on the directly following element, the copy operator.
 A final compression would give:
-$$(step\ operator\ times(4)\ gap(1)\ operator(increment\ times(1)))\ (copy\ times(4))\ 4$$
+$$(step\ operator\ times(4)\ gap(1)\ operator(increment\ times(1)))\ (increment\ times(4))\ 1$$
 
-Speaking of complexity, if we count 1 for each operator plus recursive cost of all its arguments, the sequence $1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4$ will cost 23, where the compressed version costs 14. Hence, we can say that we have a compressed version.
+Speaking of complexity, if we count 1 for each operator plus recursive cost of all its arguments, the sequence $1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4$ will cost 23, where the compressed version costs 14.
+Hence, we can say that we have a compressed version.
 
-Copy and increment search were easy, I just had to compare current result with the next sequence's element. But for the step-operator, how can one determine the gap before searching? I tried each operator but with a gap of one. The problem was that it didn't used all the power of the step operator, but the search would cost a lot in an other way. And what a step operator applied on a step operator would mean? A real complex, not useful nor handy object actually.
+Copy and increment search were easy, I just had to compare current result with the next sequence's element.
+But for the step-operator, how can one determine the gap before searching?
+I tried each operator but with a gap of one.
+The problem was that it didn't used all the power of the step operator, but the search would cost a lot in an other way.
+And what a step operator applied on a step operator would mean?
+A real complex, not useful nor handy object actually.
 
-This solution displeased Jean-Louis Dessalles, because of this strange step-operator not really 'natural', and difficult to understand and to use. That is why he asked me to only use two operators: copy and increment.
+An other problem is that it is difficult to extend a list, what specific operator should we times-increment? On this particular example, it is the first operator of the list, but can we be so sure about it? And at first how can we be sure about the fact that a list \textit{is} extendible?
+
+This solution displeased Jean-Louis Dessalles, because of this strange step-operator not really 'natural', and its difficulties to understand and use.
+That is why he asked me to only use two operators: copy and increment.
+His point was that in the previous example, increment operator would have been applied at the same time on copy operator and on digits.
+That is why I should put the argument into the operator instead of leaving it on the list.
+Then, the increment operator would have seen a sequence of copy operator incrementing at the same time their \textit{times} and \textit{argument} fields.
+
+\subsection{Two operators with inelegant application}
+
+Now with this constraining consign, question was: "How can I apply different operators on the same object but on different fields?
+I imagined a solution that I found pretty ugly, but functional: copy-operator would now both now its \textit{argument} and \textit{times}.
+Increment-operator would moreover know where in his \textit{argument} it would apply: on its \textit{argument}, its \textit{times} or both.
+
+Here is an application on previous example:
+$$1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4$$
+$$(increment(1)(1))\ (increment(2)(2))\ (increment(3)(3))$$
+$$(increment(increment(1)(1))(3)(both))$$
+
+The \textit{where} field doesn't have any meaning when applying on a digit, and this is already a structural problem.
+This same field also doesn't have any meaning when applying on an increment-operator: it cannot apply on its argument because it is the contained increment-operator which takes care of that, and hence can only apply on its \textit{times}.
+
+With this solution, part of previous problems were solved: a list is only extendible if it can be reduced to one operator, and to extend it we only have to increment its \textit{times} field and then recursively decompress it.
+Furthermore, putting any operator in the \textit{operator} field of an increment-operator will always have a meaning, like we can imagine in this situation:
+$$1\ 1\ 1\ 2\ 1\ 1\ 2\ 1\ 2\ 3\ 1\ 1\ 2\ 1\ 2\ 3\ 1\ 2\ 3\ 4$$
+Compression would give:
+$$(increment(1)(1)(argument))\ (increment(1)(1)(argument))\ (increment(1)(2)(argument))\ (increment(1)(1)(argument))\ (increment(1)(2)(argument))\ (increment(1)(3)(argument))\ (increment(1)(1)(argument))\ (increment(1)(2)(argument))\ (increment(1)(3)(argument))\ (increment(1)(4)(argument))$$
+An other time would give:
+$$(increment(increment(1)(1)(argument))(1)(times))\ (increment(increment(1)(1)(argument))(2)(times))\ (increment(increment(1)(1)(argument))(3)(times))\ (increment(increment(1)(1)(argument))(4)(times))$$
+And a last one:
+$$(increment(increment(increment(1)(1)(argument))(1)(times))(4)(times))$$
+
+This solution is findable, putting apart the complexity problem (see below), and a huge problem which is at second iteration, how did he know that increment applied once applied only on times and not something else?
+I choose 'times' because it has hence be able to compress a last time given that all increment operators applied on 'times', but I had no right to do so.
+
+During a meeting with both Samuel Tardieu and Jean-Louis Dessalles, this solution worked pretty well, putting apart some complexity problems: sometimes 'good' -read 'expected'- solutions were not kept because they costed more than uncompressed sequence.
+For example, with $1\ 2\ 2\ 3\ 3\ 4$, the program considered three increments of two times in array, but rejected it.
+For the 'dirty' where-to-apply solution, Samuel cleverly suggested that instead of a restrictive three-choices field, I should use a indexes list which could also handle deepness which could indicate where the increment-operator should apply. This is the solution I adopted and customized in my final version.
 
 \section{Current solution}
 
