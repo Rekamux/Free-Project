@@ -192,6 +192,7 @@ TODO
 \subsection{Once applied increment operators}
 
 As we saw before, when we find an increment operator used only once (\textit{times} = 1), its \textit{where} field doesn't mean anything, as when decompressed, \textit{argument} is only extracted, $I$, \textit{times} and \textit{where} being simply removed form the sequence.
+
 Normally, such a representation should be rejected because it is trivially less compressed than just writing \textit{argument} as is.
 It may be useful this example :
 $$1\ 1\ 1\ 2\ 1\ 1\ 2\ 1\ 2\ 3\ 1\ 1\ 2\ 1\ 2\ 3\ 1\ 2\ 3\ 4$$
@@ -210,12 +211,32 @@ $$\{\ 1\ 0\ 1\ I\ \}\ \textcolor{green}{2}\ 4\ I$$
 Now, we would like to obtain
 $$\{\ \{\ 1\ 0\ 1\ I\ \}\ \{\ 0\ 2\ \}\ 3\ I\ \}\ 6\ 4\ I$$
 but our program will \textcolor{red}{fail} when comparing $0$ and $2$.
-A solution would be to use a 'joker', like Factor's f in order to warn when compared with an other value that this value has not been defined yet.
+
+A solution would be to use a 'joker', like Factor's $f$ in order to warn when compared with an other value that this value has not been defined yet.
 For now, the program is not able to solve this problem without removing the first lonely $1$.
 
 \subsection{Masks and indexes}
 
+An other way to improve the program is to solve the problem how to indicate where to apply the increment-operator in a natural, compressed and Kantian way.
+
+This problem has been there since the beginning of the project, and even if a lots of plus or minus elegant solutions has been found, a lot of work is to been done on this subject.
+
 \subsection{Short memory}
+
+As explained before, the use of short memory is not reliable and quite difficult to implement.
+Even though a whole implementation has been done, it is not used in final version because of its random characteristic.
+
+An improvement would be to find a way to use it, while keeping this program's reliability and power.
+
+\section{Conclusion}
+
+This project has been an excellent way to use at a project scale a new and powerful language as Factor.
+
+It revealed itself difficult to use at first but incredibly efficient for this particular subject.
+The project itself proved to be harder than expected, because of its 'human' closely restriction.
+It has been a opportunity to consider and try to bring solutions in a little known field.
+
+This was an enriching experience and it worthed spending time working on it.
 
 \newpage
 
