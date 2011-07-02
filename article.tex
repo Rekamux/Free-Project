@@ -173,6 +173,8 @@ He suggested the use of masks, more 'natural' and compressed than my indexes not
 
 For easier representation, an \textit{argument} or a \textit{where} field reduced to only one element is not contained into a sequence, but inserted as is.
 
+For results purpose, $C$ and $I$ words don't cost anything.
+
 We also define operators' arguments order:
 \begin{itemize}
   \item{$WHAT\ TIMES\ C$}
@@ -193,7 +195,46 @@ $$1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4\ 5\ 5\ 5\ 5\ 5$$
 \section{Backtracking with Factor}
 
 Let us see deeper how search algorithm works, using Factor's backtracking power.
-TODO
+
+\subsection{\textcolor{green}{amb} and \textcolor{red}{fail}}
+
+Using continuations in factor, we can use \textcolor{green}{amb} to test all elements in a sequence.
+When \textcolor{red}{fail} is called, the program comes back to the last \textcolor{green}{amb} call and tries its next element.
+If no element is left, this level is abandoned and the previous one is considered.
+This system, quite close to Prolog's one, is useful to try possibilities at different levels, and backtrack in case of failure to the next possibility.
+
+\subsection{Search order}
+
+As it is able to complete not complete sequences, the program will first try to remove from 0 to length minus 1 elements.
+At each removal, it will check if when extended the resulting sequence contains the initial one and \textcolor{red}{fail} otherwise.
+
+If nothing is found, it will extract the given sequence's elements in a such way that all elements are present only once, and ordered from the last found to the first one.
+The program will then try all combination with a adding length limit of the initial sequence's length.
+This part has a $n!$ complexity, but is rarely reached because it is easy to find a solution
+
+Those operation are two parallels \textcolor{green}{amb}.
+
+Given a sequence on which we would like to search, we try to compress it using several \textcolor{green}{amb}.
+
+At first, we try an operator, $C$ and then $I$.
+
+Given an operator, we decide a searching size.
+We will try from 1 up to the sequence's length.
+A size represents what is taken from a list in order to search on it.
+This parameter is important, for example to detect incrementation from an operator to another, like in the next section example.
+
+Once an operator and a size has been chosen, we compress the sequence from the left to the right by going as far as possible and appending result to previous results until the rest is empty
+(if the rest is not long enough to be taken \textit{size} elements, the program will \textcolor{red}{fail}.
+
+Once a list has been compressed, it is rejected if all found operators are only applied once.
+Its complexity is then compared to initial sequence's one, and the best one is kept (if complexities are equal, the previous sequence is kept and we \textcolor{red}{fail}).
+
+If we were able to compress until we have got only an operator and its arguments (3 for $C$ and 4 for $I$), we check if arguments are coherent and finally extend if so, by increasing its times and then uncompress the final sequence.
+
+I also implemented a way to look after \textit{all} solutions, but as the adding part has a $n!$ complexity, this way takes a very long time to return.
+
+For any implementation considering, see the program documentation as explained in my git repository README.
+I spend quite a long time writing it as exhaustive as possible, so that a good comprehension of the program is possible.
 
 \section{Ways to continue}
 
