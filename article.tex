@@ -44,9 +44,9 @@ That is why a huge domain of research still exists in that field, always in the 
 
 We are now to try to light up some darks areas of this problem.
 Let us imagine a very simple sequence:
-$$1 2 2 3 3 3$$
+$$1\ 2\ 2\ 3\ 3\ 3$$
 Any eight-years old children would easily suggest that a good continuation of this sequence would be:
-$$1 2 2 3 3 3 4 4 4 4$$
+$$1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4$$
 But how can one be so sure about it?
 This is where we can introduce the notion of 'complexity', and more especially Kolmogorov's one:
 
@@ -54,14 +54,57 @@ This is where we can introduce the notion of 'complexity', and more especially K
 
 In other words, this complexity has the particularity to highly depends of using person, and is therefore really difficult to use inside a program.
 
+Using this complexity, one could define $1\ 2\ 2\ 3\ 3\ 3$ as 'count from one and repeat each number as much as itself', which is really easier to understand, memorize and extend for an human than a random sequence, like a telephone or a credit card number. We will explore different ways to represent and manipulate such informations.
+
 An other way to compute a list's complexity would be to use \textit{short term memory}, a list or tree containing last used elements.
 An access to one of those elements would be its address for example binary coded.
 This model is easily explainable considering that a human, if he was able to solve a problem using a specific operator, will naturally try it first when confronted to a new problem.
 This list is implemented but not used because of its unpredictable character.
 
-That is why in present version a standard binary coding is used to compute a list's complexity.
+That is why in present version a standard \textit{binary coding} is used to compute a list's complexity, with 0 costing 0.
 
 Given a way to compute complexity, one can try to compress a list using \textit{operators} while resulting complexity is lower than initial sequence's one.
+
+\section{Tentatives}
+
+\subsection{Three operators}
+
+At first, I thought about using Factor's \textit{tuples}, special sequences of fields easily sharable between descendants, like standard \textit{Object Oriented Programming}.
+
+I defined a tuple \textit{operator} containing a field named \textit{times}.
+Operator had the following methods, or \textit{generic functions} in Factor:
+\begin{itemize}
+  \item{cost, a function returning a operator's cost regarding its fields values. At this time, I wasn't thinking about short term memory.}
+  \item{apply, a function which uses a digit and generate a sequence by uncompressing this operator on it.}
+  \item{search, a function which tries to find current operator's application on a sequence.}
+\end{itemize}
+
+Given those methods, I defined three operators:
+\begin{itemize}
+  \item{A copy operator: using its predecessor's \textit{times}, copies given argument \textit{times} }
+  \item{An increment operator: increments and copy by one given argument \textit{times}. If this argument is an operator, it will copy it by incrementing its \textit{times} field. }
+  \item{A step operator: contains also a \textit{gap} argument and an \textit{operator} field, applies its operator by skipping as much elements as given by \textit{gap} on a list.}
+\end{itemize}
+
+The step operator was useful for this case:
+$$1\  2\  2\  3\  3\  3\  4\  4\  4\  4$$
+When compressed once using copy operator, it gave:
+$$(copy\ times(1))\ 1\ (copy\ times(2))\ 2\ (copy\ times(3))\ 3\ (copy\ times(4))\ 4$$
+Here, we can easily see that we have an increment on the digits and on the operators, but separated by one element each time. Using step operator, it gives:
+$$(step\ operator\ times(4)\ gap(1)\ operator(increment\ times(1)))\ 1\ 2\ 3\ 4$$
+The step operator will apply three times with a gap of one. As between each gap we only have one element, the increment operator in \textit{operator} field only applies once each time. The step operator will apply on the directly following element, the copy operator.
+A final compression would give:
+$$(step\ operator\ times(4)\ gap(1)\ operator(increment\ times(1)))\ (copy\ times(4))\ 4$$
+
+Speaking of complexity, if we count 1 for each operator plus recursive cost of all its arguments, the sequence $1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4$ will cost 23, where the compressed version costs 14. Hence, we can say that we have a compressed version.
+
+Copy and increment search were easy, I just had to compare current result with the next sequence's element. But for the step-operator, how can one determine the gap before searching? I tried each operator but with a gap of one. The problem was that it didn't used all the power of the step operator, but the search would cost a lot in an other way. And what a step operator applied on a step operator would mean? A real complex, not useful nor handy object actually.
+
+This solution displeased Jean-Louis Dessalles, because of this strange step-operator not really 'natural', and difficult to understand and to use. That is why he asked me to only use two operators: copy and increment.
+
+\section{Current solution}
+
+\section{Ways to continue}
 
 \newpage
 
