@@ -8,6 +8,7 @@
 \usepackage{graphicx}
 \usepackage[nottoc, notlof, notlot]{tocbibind}
 \usepackage{hyperref}
+\usepackage{color}
 
 \begin{document}
 
@@ -132,14 +133,14 @@ The \textit{where} field doesn't have any meaning when applying on a digit, and 
 This same field also doesn't have any meaning when applying on an increment-operator: it cannot apply on its argument because it is the contained increment-operator which takes care of that, and hence can only apply on its \textit{times}.
 
 With this solution, part of previous problems were solved: a list is only extendible if it can be reduced to one operator, and to extend it we only have to increment its \textit{times} field and then recursively decompress it.
-\label{once_example}
 Furthermore, putting any operator in the \textit{operator} field of an increment-operator will always have a meaning, like we can imagine in this situation:
 $$1\ 1\ 1\ 2\ 1\ 1\ 2\ 1\ 2\ 3\ 1\ 1\ 2\ 1\ 2\ 3\ 1\ 2\ 3\ 4$$
-Compression would give:
+Compression would give (sequence is cut for better understanding):
 $$(increment(1)(1)(arg))$$
 $$(increment(1)(1)(arg))\ (increment(1)(2)(arg))$$
 $$(increment(1)(1)(arg))\ (increment(1)(2)(arg))\ (increment(1)(3)(arg))$$
 $$(increment(1)(1)(arg))\ (increment(1)(2)(arg))\ (increment(1)(3)(arg))\ (increment(1)(4)(arg))$$
+
 An other time would give:
 $$(increment(increment(1)(1)(arg))(1)(times))$$
 $$(increment(increment(1)(1)(arg))(2)(times))$$
@@ -163,18 +164,20 @@ Customized indexed work this way: increment operators own in their \textit{where
 For example, let us consider the following sequence:
 $$\{\ 0\ 1\ \{\ 2\ \{\ 3\ 4\ \}\ 5\ \{\ 6\ \}\ \}\ 7\ \{\ 8\ \}\ 9\ \}$$
 Digits represent each element's index.
-Hence, any deepness level can be reached, and no need is to recall structural information with for example tree indexes, in which case element 4 would be accessed with 3.1.1 instead of just 4.
+Hence, any deepness level can be reached, and no need is to recall structural information with for example tree indexes, in which case element 4 would be accessed with 2.1.1 instead of just 4.
 This notation is easier to manipulate and resulting \textit{where} sequence may even be compressed!
-Jean-Louis Dessalles wasn't really satisfied by this index solution: it wouldn't respect Kantian structural form of the model (we should be able to manipulate shapes or vegetables as well) and structure is absolutely not represented using it.
+Jean-Louis Dessalles wasn't really satisfied by this index solution: it wouldn't respect Kantian structural form of the model (we should be able to manipulate shapes or vegetables as well and using them all along the model) and structure is absolutely not represented using it.
 He suggested the use of masks, more 'natural' and compressed than my indexes notation, but it doesn't solve the structure's respect problem and is actually in bijection with my system (as it is more important to act simply and 'humanly' than saving RAM, we can neglect the compression difference).
+
+For easier representation, an \textit{argument} or a \textit{where} field reduced to only one argument is not contained into a sequence, but inserted as is.
 
 Here is an example of using this system on our favorite example:
 $$1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4$$
 $$1\ 1\ C\ 2\ 2\ C\ 3\ 3\ C\ 4\ 4\ C$$
-$${\ 1\ 1\ C\ }\ {\ 0\ 1\ }\ 4\ I$$
+$$\{\ 1\ 1\ C\ \}\ \{\ 0\ 1\ \}\ 4\ I$$
 We only have one operator left, just with its arguments.
 We increment its \textit{times} field:
-$${\ 1\ 1\ C\ }\ {\ 0\ 1\ }\ 5\ I$$
+$$\{\ 1\ 1\ C\ \}\ \{\ 0\ 1\ \}\ 5\ I$$
 And decompress it to obtain logical extension:
 $$1\ 1\ C\ 2\ 2\ C\ 3\ 3\ C\ 4\ 4\ C\ 5\ 5\ C$$
 $$1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4\ 5\ 5\ 5\ 5\ 5$$
@@ -189,10 +192,30 @@ TODO
 \subsection{Once applied increment operators}
 
 As we saw before, when we find an increment operator used only once (\textit{times} = 1), its \textit{where} field doesn't mean anything, as when decompressed, \textit{argument} is only extracted, $I$, \textit{times} and \textit{where} being simply removed form the sequence.
-Normally, such a representation should be rejected because it trivially is less compressed than just writing \textit{argument} as is.
-It may be useful in 'Dirty' solution example (\ref{once_example}):
+Normally, such a representation should be rejected because it is trivially less compressed than just writing \textit{argument} as is.
+It may be useful this example :
 $$1\ 1\ 1\ 2\ 1\ 1\ 2\ 1\ 2\ 3\ 1\ 1\ 2\ 1\ 2\ 3\ 1\ 2\ 3\ 4$$
-At first
+Let compress it using our method (sequence is cut for better understanding):
+$$1\ 0\ 1\ I$$
+$$1\ 0\ 1\ I\ 1\ 0\ 2\ I$$
+$$1\ 0\ 1\ I\ 1\ 0\ 2\ I\ 1\ 0\ 3$$
+$$I\ 1\ 0\ 1\ I\ 1\ 0\ 2\ I\ 1\ 0\ 3\ I\ 1\ 0\ 4\ I$$
+
+This is of course one over a lot of obtainable solutions, but it is findable by our process so we have the right to consider it.
+Here we will make an 'error' which will cost us the solution:
+$$\{\ 1\ 0\ 1\ I\ \}\ \textcolor{red}{0}\ 1\ I$$
+$$\{\ 1\ 0\ 1\ I\ \}\ \textcolor{green}{2}\ 2\ I$$
+$$\{\ 1\ 0\ 1\ I\ \}\ \textcolor{green}{2}\ 3\ I$$
+$$\{\ 1\ 0\ 1\ I\ \}\ \textcolor{green}{2}\ 4\ I$$
+Now, we would like to obtain
+$$\{\ \{\ 1\ 0\ 1\ I\ \}\ \{\ 0\ 2\ \}\ 3\ I\ \}\ 6\ 4\ I$$
+but our program will \textcolor{red}{fail} when comparing $0$ and $2$.
+A solution would be to use a 'joker', like Factor's f in order to warn when compared with an other value that this value has not been defined yet.
+For now, the program is not able to solve this problem without removing the first lonely $1$.
+
+\subsection{Masks and indexes}
+
+\subsection{Short memory}
 
 \newpage
 
