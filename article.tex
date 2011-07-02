@@ -29,42 +29,42 @@
 As a student at Télécom ParisTech, I chose to follow the 'Non-classic languages paradigms' course with Samuel Tardieu\cite{samuel}, while working on a free project with Jean-Louis Dessalles\cite{jld}.
 Jean-Louis Dessalles suggested a project based on a Komolgorov's complexity problem: given a small sequence of digits, shapes or characters, I had to design a small program able to complete this list as well as an eight-years old children. \cite{starting_point}
 
-The main purpose of this project is to apply Kolmogorov theory on the given list in order to compress it in a optimal and human way, so that we will then be able to extend that list using found compression process.
+The main goal of this project is to apply Kolmogorov theory on the given list in order to compress it in a optimal and human way, so that we will then be able to extend that list using found compression process.
 On the 'Non-classic languages paradigms' course, we learned small spread languages as Haskel, Scala or Factor, and we were also supposed to perform a small implementation project using one of those languages.
 
-Factor\cite{factor} is a quite memory-close language, able to perform back-tracking as well as Prolog using continuations and working on a stack, like a logical sequence.
-Its powerful and non-standard architecture make him a very interesting language to work on, and that is why I chose to use it to implement my project.
+Factor\cite{factor} is a quite memory-close language, able to perform backtracking as well as Prolog using continuations and working on a stack, like a logical sequence.
+Its powerful and non-standard architecture makes it a very interesting language to work on, and this is why I chose to use it to implement my project.
 
 \section{Problematic}
 
-Humans' capability to compress and understand structures always fascinated computer sciences researchers.
-Humans are able to perfectly perform tasks as recognizing a person's face, understand a language or, in our scope of interest, understand and complete a list of digits, alphabetics or shapes.
-Those tasks are very difficult to efficiently complete for machines, even using the most powerful computers.
-That is why a huge domain of research still exists in that field, always in the same goal: give machines more and more of our 'human intelligence'.
+Humans capabilities to compress and understand structures have always fascinated computer sciences researchers.
+Humans are able to perform perfectly tasks as recognizing a person's face, understand a language or, in our scope of interest, understand and complete a list of digits, alphabetics or shapes.
+Those tasks are very difficult to be completed efficiently by machines, even using the most powerful computers.
+That is why a huge domain of research still exists on that subject, always with the same goal: give machines more and more of our "human intelligence".
 
 \section{Basis}
 
 We are now to try to light up some darks areas of this problem.
 Let us imagine a very simple sequence:
 $$1\ 2\ 2\ 3\ 3\ 3$$
-Any eight-years old children would easily suggest that a good continuation of this sequence would be:
+Any eight-years old children would easily suggests that a good continuation of this sequence would be:
 $$1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4$$
 But how can one be so sure about it?
-This is where we can introduce the notion of 'complexity', and more especially Kolmogorov's one:
+This is where we can introduce the notion of "complexity", and more especially Kolmogorov's one:
 
 "In algorithmic information theory (a subfield of computer science), the Kolmogorov complexity of an object, such as a piece of text, is a measure of the computational resources needed to specify the object." \cite{wikipedia_kolmogorov}
 
-In other words, this complexity has the particularity to highly depends of using person, and is therefore really difficult to use inside a program.
+In other words, this complexity has the particularity to highly depends of the user, and is moreover really difficult to use it inside a program.
 
-Using this complexity, one could define $1\ 2\ 2\ 3\ 3\ 3$ as 'count from one and repeat each number as much as itself', which is really easier to understand, memorize and extend for an human than a random sequence, like a telephone or credit card number.
+Using this complexity, someone could define $1\ 2\ 2\ 3\ 3\ 3$ as "count from one and repeat each number as much as itself", which is really easier to understand, memorize and extend for an human than a random sequence, like a telephone or credit card number.
 We will explore different ways to represent and manipulate such informations.
 
 An other way to compute a list's complexity would be to use \textit{short term memory}, a list or tree containing last used elements.
-An access to one of those elements would be its binary coded address for example.
-This model is easily explainable considering that a human, if he was able to solve a problem using a specific operator, will naturally try it first when confronted to a new problem.
+An access to one of those elements would be its binary coded address, for example.
+This model is easily explainable considering that a human, if he was able to solve a problem using a specific operator, will naturally try this operator first when confronted to a new problem.
 This list is implemented but not used because of its unpredictable character.
 
-That is why in present version a standard \textit{binary coding} is used to compute a list's complexity, with 0 costing 0.
+That is why in the present version a standard \textit{binary coding} is used to compute a list's complexity, with 0 costing 0.
 
 Given a way to compute complexity, one can try to compress a list using \textit{operators} while resulting complexity is lower than initial sequence's one.
 
@@ -72,20 +72,22 @@ Given a way to compute complexity, one can try to compress a list using \textit{
 
 \subsection{Three operators}
 
-At first, I thought about using Factor's \textit{tuples}, special sequences of fields easily sharable between descendants, like standard \textit{Object Oriented Programming}.
+At first, I thought about using Factor's \textit{tuples}, special sequences of easily sharable between descendants fields, like standard \textit{Object Oriented Programming}.
 
 I defined a tuple \textit{operator} containing a field named \textit{times}.
 Operator had the following methods, or \textit{generic functions} in Factor:
 \begin{itemize}
   \item{cost, a function returning an operator's cost regarding its fields values.}
-  \item{apply, a function which uses a sequence and generate a sequence by uncompressing this operator on it (often only using its first element).}
+  \item{apply, a function which uses a sequence and generate a sequence by uncompressing this operator on it (often using only its first element).}
   \item{search, a function which tries to find current operator's application on a sequence.}
 \end{itemize}
 
 Given those methods, I defined three operators:
 \begin{itemize}
   \item{A copy operator: using its predecessor's \textit{times} field, copies given argument \textit{times} times. }
-  \item{An increment operator: increments and copy given argument \textit{times} times. If this argument is an operator, it will copy it by incrementing its \textit{times} field. }
+  \item{
+    An increment operator: increments and copy given argument \textit{times} times.
+    If this argument is an operator, it will copy it by incrementing its \textit{times} field. }
   \item{A step operator: also contains a \textit{gap} argument and an \textit{operator} field, applies its operator by skipping as much elements as given by \textit{gap} on a list.}
 \end{itemize}
 
@@ -93,9 +95,11 @@ The step operator was useful for this case:
 $$1\  2\  2\  3\  3\  3\  4\  4\  4\  4$$
 When compressed once using copy operator, it gave:
 $$(copy\ times(1))\ 1\ (copy\ times(2))\ 2\ (copy\ times(3))\ 3\ (copy\ times(4))\ 4$$
-Here, we can easily see that we have an increment on the digits and on the operators, but separated by one element each time. Using step operator, it gives:
+Here, we can easily see that we have an increment on the digits and on the operators, but separated by one element each time.
+Using step operator, it gives:
 $$(step\ operator\ times(4)\ gap(1)\ operator(increment\ times(1)))\ 1\ 2\ 3\ 4$$
-The step operator will apply three times with a gap of one. As between each gap we only have one element, the increment operator in \textit{operator} field only applies once each time.
+The step operator will apply three times with a gap of one.
+As between each gap we only have one element, the increment operator in \textit{operator} field only applies once each time.
 The step operator will apply on the directly following element, the copy operator.
 A final compression would give:
 $$(step\ operator\ times(4)\ gap(1)\ operator(increment\ times(1)))$$
@@ -105,24 +109,26 @@ Speaking of complexity, if we count 1 for each operator plus recursive cost of a
 Hence, we can say that we have a compressed version.
 
 Copy and increment search were easy, I just had to compare current result with the next sequence's element.
-But for the step-operator, how can one determine the gap before searching?
+But for the step-operator, how to determine the gap before searching?
 I tried each operator but with a gap of one.
-The problem was that it didn't used all the power of the step operator, but the search would cost a lot in an other way.
-And what a step operator applied on a step operator would mean?
+The problem was that it didn't used all the power of the step operator, but the search would cost a lot in another way.
+And what does a step operator applied on a step operator would mean?
 A real complex, not useful nor handy object actually.
 
-An other problem is that it is difficult to extend a list, what specific operator should we times-increment? On this particular example, it is the first operator of the list, but can we be so sure about it? And at first how can we be sure about the fact that a list \textit{is} extendible?
+An other problem is that it is difficult to extend a list, what specific operator should we "times-increment"?
+On this particular example, it is the first operator of the list, but can we be sure about it?
+And foremost, how can we be sure about the fact that a list \textit{is} extendible?
 
-This solution displeased Jean-Louis Dessalles, because of this strange step-operator not really 'natural', and its difficulties to be understood and used.
+This solution displeased Jean-Louis Dessalles, because of this not really "natural" strange step-operator, and its difficulties to be understood and used.
 That is why he asked me to only use two operators: copy and increment.
 His point was that in the previous example, increment operator should have been applied at the same time on copy operator and on digits.
-That is why I should put the argument into the operator instead of leaving it on the list.
+Therefore, I should put the argument into the operator instead of leaving it on the list.
 Then, the increment operator would have seen a sequence of copy operator incrementing at the same time their \textit{times} and \textit{argument} fields.
 
 \subsection{Two operators with inelegant application}
 
-Now with this constraining consign, question was: "How can I apply different operators on the same object but on different fields?
-I imagined a solution that I found pretty ugly, but functional: copy-operator would now both now its \textit{argument} and \textit{times}.
+Now with this constraining consign, the question was: "How can I apply different operators on the same object but on different fields?"
+I imagined a solution that I found pretty ugly, but functional: copy-operator would now both know its \textit{argument} and \textit{times}.
 Increment-operator would inherit from copy-operator and moreover know where in his \textit{argument} it would apply: on its \textit{argument}, its \textit{times} or both. This information was stored on a \textit{where} field.
 
 Here is an application on previous example (first parenthesis contain \textit{argument}, second \textit{times} and last \textit{where}):
@@ -136,7 +142,7 @@ This same field also doesn't have any meaning when applying on an increment-oper
 With this solution, part of previous problems were solved: a list is only extendible if it can be reduced to one operator, and to extend it we only have to increment its \textit{times} field and then recursively decompress it.
 Furthermore, putting any operator in the \textit{operator} field of an increment-operator will always have a meaning, like we can imagine in this situation:
 $$1\ 1\ 1\ 2\ 1\ 1\ 2\ 1\ 2\ 3\ 1\ 1\ 2\ 1\ 2\ 3\ 1\ 2\ 3\ 4$$
-Compression would give (sequence is cut for better understanding):
+Compression would give (sequence has been cut for better understanding):
 $$(increment(1)(1)(arg))$$
 $$(increment(1)(1)(arg))\ (increment(1)(2)(arg))$$
 $$(increment(1)(1)(arg))\ (increment(1)(2)(arg))\ (increment(1)(3)(arg))$$
@@ -150,26 +156,29 @@ $$(increment(increment(1)(1)(arg))(4)(times))$$
 And a last one:
 $$(increment(increment(increment(1)(1)(arg))(1)(times))(4)(times))$$
 
-This solution is findable, putting apart the complexity problem (see below), and a huge problem which is at second iteration, how did he know that increment applied once applied only on times and not something else?
-I chose 'times' because it has hence been able to compress a last time given that all increment operators applied on 'times', but I had no right to do so.
+This solution is findable, putting apart the complexity problem (see below), and a huge problem which is at second iteration, how did it know that increment applied once applied only on \textit{times} and not something else?
+I chose \textit{times} because it has been able to compress a last time, given that all increment operators applied on \textit{times}, but I had no right to do so.
 
-During a meeting with both Samuel Tardieu and Jean-Louis Dessalles, this solution worked pretty well, putting apart some complexity problems: sometimes 'good' (think 'expected') solutions were not kept because they costed more than uncompressed sequence.
-For example, with $1\ 2\ 2\ 3\ 3\ 4$, the program considered three increments of two times in array, but rejected it.
-For the 'dirty' where-to-apply solution, Samuel cleverly suggested that instead of a restrictive three-choices field, I should use a indexes list which could also handle deepness indicating where the increment-operator should apply. This is the solution I adopted and customized in my final version.
+During a meeting with both Samuel Tardieu and Jean-Louis Dessalles, this solution worked pretty well, putting apart some complexity problems: sometimes "good" (think "expected") solutions were not kept because they costed more than uncompressed sequence.
+For example, with $1\ 2\ 2\ 3\ 3\ 4$, the program considered three increments of two times in a row, but rejected it.
+For the "dirty" where-to-apply solution, Samuel cleverly suggested that instead of a restrictive three-choices field, I should use a indexes list which could also handle deepness, indicating where the increment-operator should apply.
+This is the solution I adopted and customized in my final version.
 
 \section{Current solution}
 
-Current solution is axed on Factor's suffixed way: an operator is represented by a letter, $C$ for copy and $I$ for increment, and applies on a specified number of arguments \textit{before} it.
+Current solution is axed on Factor's suffixed way: an operator is represented by a letter, $C$ for copy or $I$ for increment, and applies on a specified number of arguments BEFORE it.
 Elements in a compressed sequence are only compressed sequences, digits or operators letters.
-Customized indexes work this way: increment operators own in their \textit{where} field a sequence of digits, which are indexes representing an element's absolute position in extended \textit{argument}.
+Customized indexes work that way: increment operators own in their \textit{where} field a sequence of digits, which are indexes representing an element's absolute position in extended \textit{argument}.
 For example, let us consider the following sequence:
 $$\{\ a_0\ a_1\ \{\ a_2\ \{\ a_3\ a_4\ \}\ a_5\ \{\ a_6\ \}\ \}\ a_7\ \{\ a_8\ \}\ a_9\ \}$$
-Indexes are used extended indexes.
-Hence, any deepness level can be reached, and no need is to recall structural information, like for example with tree indexes, in which case element $a_4$ would be accessed with $2.1.1$ instead of $4$.
+Indexes are extended indexes.
+Hence, any deepness level can be reached, and there is no need to recall structural information, like with tree indexes, in which case element $a_4$ would be accessed with $2.1.1$ instead of $4$.
 This notation is easier to manipulate and resulting \textit{where} sequence may even be compressed!
 
-Jean-Louis Dessalles wasn't really satisfied by this index solution: it wouldn't respect Kantian structural form of the model (we should be able to manipulate shapes or vegetables as well and using them all along the model) and structure is absolutely not represented using it.
-He suggested the use of masks, more 'natural' and compressed than my indexes notation, but it doesn't solve the structure's respect problem and is actually in bijection with my system (as it is more important to act simply and 'humanly' than saving RAM, we can neglect the compression difference).
+Jean-Louis Dessalles wasn't really satisfied by this index solution: it wouldn't respect Kantian structural form of the model
+(we should be able to manipulate shapes or vegetables as well and using them all along the model) and the structure is absolutely not represented using it.
+He suggested the use of masks, more "natural" and compressed than my indexes notation, but it doesn't solve the structure's respect problem and it is actually in bijection with my system
+(as it is more important to act simply and 'humanly' than saving RAM, we can neglect the compression difference).
 
 For easier representation, an \textit{argument} or a \textit{where} field reduced to only one element is not contained into a sequence, but inserted as is.
 
@@ -181,7 +190,7 @@ We also define operators' arguments order:
   \item{$WHAT\ WHERE\ TIMES\ I$}
 \end{itemize}
 
-Here is an example of using this system on our favorite example:
+Here is an example of the use of this system on our favorite example:
 $$1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4$$
 $$1\ 1\ C\ 2\ 2\ C\ 3\ 3\ C\ 4\ 4\ C$$
 $$\{\ 1\ 1\ C\ \}\ \{\ 0\ 1\ \}\ 4\ I$$
@@ -194,27 +203,25 @@ $$1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4\ 5\ 5\ 5\ 5\ 5$$
 
 \section{Backtracking with Factor}
 
-Let us see deeper how search algorithm works, using Factor's backtracking power.
+Let us see closer how does search algorithm work, using Factor's backtracking power.
 
 \subsection{\textcolor{green}{amb} and \textcolor{red}{fail}}
 
 Using continuations in factor, we can use \textcolor{green}{amb} to test all elements in a sequence.
 When \textcolor{red}{fail} is called, the program comes back to the last \textcolor{green}{amb} call and tries its next element.
-If no element is left, this level is abandoned and the previous one is considered.
+If there is no element left, this level is abandoned and the previous one is considered.
 This system, quite close to Prolog's one, is useful to try possibilities at different levels, and backtrack in case of failure to the next possibility.
 
 \subsection{Search order}
 
-As it is able to complete not complete sequences, the program will first try to remove from 0 to length minus 1 elements.
+As it is able to complete incomplete sequences, the program will first try to remove from 0 to the length minus 2 elements.
 At each removal, it will check if when extended the resulting sequence contains the initial one and \textcolor{red}{fail} otherwise.
 
-If nothing is found, it will extract the given sequence's elements in a such way that all elements are present only once, and ordered from the last found to the first one.
-The program will then try all combination with a adding length limit of the initial sequence's length.
-This part has a $n!$ complexity, but is rarely reached because it is easy to find a solution
+If nothing is found, it will extract the given sequence's elements in such a way that all elements are present only once, and ordered from the last found to the first one.
+The program will then try all combinations with a adding length limit of the initial sequence's length.
+This part has a $n!$ complexity, but it is rarely reached because it is easy to find a solution.
 
-Those operation are two parallels \textcolor{green}{amb}.
-
-Given a sequence on which we would like to search, we try to compress it using several \textcolor{green}{amb}.
+Given a sequence on which we would like to search, we try to compress it using several \textcolor{green}{amb}:
 
 At first, we try an operator, $C$ and then $I$.
 
@@ -224,35 +231,36 @@ A size represents what is taken from a list in order to search on it.
 This parameter is important, for example to detect incrementation from an operator to another, like in the next section example.
 
 Once an operator and a size has been chosen, we compress the sequence from the left to the right by going as far as possible and appending result to previous results until the rest is empty
-(if the rest is not long enough to be taken \textit{size} elements, the program will \textcolor{red}{fail}.
+(if the rest is not long enough to be taken \textit{size} elements, the program will \textcolor{red}{fail}).
 
 Once a list has been compressed, it is rejected if all found operators are only applied once.
-Its complexity is then compared to initial sequence's one, and the best one is kept (if complexities are equal, the previous sequence is kept and we \textcolor{red}{fail}).
 
-If we were able to compress until we have got only an operator and its arguments (3 for $C$ and 4 for $I$), we check if arguments are coherent and finally extend if so, by increasing its times and then uncompress the final sequence.
+Its complexity is then compared to the initial sequence's one, and the best one is kept (if complexities are equal, the previous sequence is kept and we \textcolor{red}{fail}).
 
-I also implemented a way to look after \textit{all} solutions, but as the adding part has a $n!$ complexity, this way takes a very long time to return.
+If we were able to compress until we have got only an operator and its arguments (3 for $C$ and 4 for $I$), we check if arguments are coherent and if so, finally extend it, by increasing its times and then uncompress the final sequence.
+
+I also implemented a way to look after ALL solutions, but as the adding part has a $n!$ complexity, this way takes a very long time to return.
 
 For any implementation considering, see the program documentation as explained in my git repository README.
-I spend quite a long time writing it as exhaustive as possible, so that a good comprehension of the program is possible.
+I spent quite a long time writing it as exhaustive as possible, so that a good comprehension of the program is possible.
 
 \section{Ways to continue}
 
 \subsection{Once applied increment operators}
 
-As we saw before, when we find an increment operator used only once (\textit{times} = 1), its \textit{where} field doesn't mean anything, as when decompressed, \textit{argument} is only extracted, $I$, \textit{times} and \textit{where} fields being simply removed from the sequence.
+As we saw before, when we find an increment operator used only once (\textit{times} = 1), its \textit{where} field doesn't mean anything, as when it is decompressed, \textit{argument} is only extracted, $I$, \textit{times} and \textit{where} fields being simply removed from the sequence.
 
-Normally, such a representation should be rejected because it is trivially less compressed than just writing \textit{argument} as is.
-It may be useful this example :
+Normally, such a representation should be rejected because trivially, it is less compressed than just writing \textit{argument} as is.
+It may be useful in this example :
 $$1\ 1\ 1\ 2\ 1\ 1\ 2\ 1\ 2\ 3\ 1\ 1\ 2\ 1\ 2\ 3\ 1\ 2\ 3\ 4$$
-Let compress it using our method (sequence is cut for better understanding):
+Let us compress it using our method (sequence has been cut for better understanding):
 $$1\ 0\ 1\ I$$
 $$1\ 0\ 1\ I\ 1\ 0\ 2\ I$$
 $$1\ 0\ 1\ I\ 1\ 0\ 2\ I\ 1\ 0\ 3$$
 $$I\ 1\ 0\ 1\ I\ 1\ 0\ 2\ I\ 1\ 0\ 3\ I\ 1\ 0\ 4\ I$$
 
 This is of course one over a lot of obtainable solutions, but it is findable by our process so we have the right to consider it.
-Here we will make an 'error' which will cost us the solution:
+Here we will make an "error" which will cost us the solution:
 $$\{\ 1\ 0\ 1\ I\ \}\ \textcolor{red}{0}\ 1\ I$$
 $$\{\ 1\ 0\ 1\ I\ \}\ \textcolor{green}{2}\ 2\ I$$
 $$\{\ 1\ 0\ 1\ I\ \}\ \textcolor{green}{2}\ 3\ I$$
@@ -261,25 +269,25 @@ Now, we would like to obtain
 $$\{\ \{\ 1\ 0\ 1\ I\ \}\ 2\ 1\ I\ \}\ 6\ 4\ I$$
 but our program will \textcolor{red}{fail} when comparing $0$ and $2$.
 
-A solution would be to use a 'joker', like Factor's $f$ in order to warn when compared with an other value that this value has not been defined yet.
+A solution would be to use a "joker", like Factor's $f$ in order to warn, when compared with an other value, that this value has not been defined yet.
 For now, the program is not able to solve this problem without removing the first lonely $1$.
 
 \subsection{Masks and indexes}
 
-An other way to improve the program is to solve the 'how to indicate where to apply the increment-operator in a natural, compressed and Kantian way' problem.
+An other way to improve the program would be to solve the "how to indicate where to apply the increment-operator in a natural, compressed and Kantian way" problem.
 
-It has been there since the beginning of the project, and even if a lots of plus or minus elegant solutions have been found, a lot of work is to been done on this subject.
+It has been there since the beginning of the project, and even if a lots of plus or minus elegant solutions have been found, a lot of work has to been done on this subject.
 
 \subsection{Short term memory}
 
 As explained before, the use of short memory is not reliable and quite difficult to implement.
-Even though a whole implementation has been done, it is not used in final version because of its random behaviour.
+Even though a whole implementation has been done, it has not used in final version because of its random behaviour.
 
 An improvement would be to find a way to use it, while keeping this program's reliability and power.
 
 \section{Conclusion}
 
-This project has been an excellent way to use at a project scale a new and powerful language as Factor.
+This project has been an excellent way to use, at a project scale, a new and powerful language as Factor.
 
 It revealed itself difficult to use at first but incredibly efficient for this particular subject.
 The project itself proved to be harder than expected, because of its 'human' restriction.
