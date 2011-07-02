@@ -26,7 +26,7 @@
 \section{Introduction}
 
 As a student at Télécom ParisTech, I chose to follow the 'Non-classic languages paradigms' course with Samuel Tardieu\cite{samuel}, while working on a free project with Jean-Louis Dessalles\cite{jld}.
-Mr. Dessalles suggested a project based on a Komolgorov's complexity problem: given a small sequence of digits, shapes or characters, I had to design a small program able to complete this list as well as an eight-years old children. \cite{starting_point}
+Jean-Louis Dessalles suggested a project based on a Komolgorov's complexity problem: given a small sequence of digits, shapes or characters, I had to design a small program able to complete this list as well as an eight-years old children. \cite{starting_point}
 
 The main purpose of this project is to apply Kolmogorov theory on the given list in order to compress it in a optimal and human way, so that we will then be able to extend that list using found compression process.
 On the 'Non-classic languages paradigms' course, we learned small spread languages as Haskel, Scala or Factor, and we were also supposed to perform a small implementation project using one of those languages.
@@ -123,7 +123,7 @@ Now with this constraining consign, question was: "How can I apply different ope
 I imagined a solution that I found pretty ugly, but functional: copy-operator would now both now its \textit{argument} and \textit{times}.
 Increment-operator would moreover know where in his \textit{argument} it would apply: on its \textit{argument}, its \textit{times} or both.
 
-Here is an application on previous example:
+Here is an application on previous example (first parenthesis contain \textit{argument} and second \textit{times}):
 $$1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4$$
 $$(increment(1)(1))\ (increment(2)(2))\ (increment(3)(3))$$
 $$(increment(increment(1)(1))(3)(both))$$
@@ -132,32 +132,74 @@ The \textit{where} field doesn't have any meaning when applying on a digit, and 
 This same field also doesn't have any meaning when applying on an increment-operator: it cannot apply on its argument because it is the contained increment-operator which takes care of that, and hence can only apply on its \textit{times}.
 
 With this solution, part of previous problems were solved: a list is only extendible if it can be reduced to one operator, and to extend it we only have to increment its \textit{times} field and then recursively decompress it.
+\label{once_example}
 Furthermore, putting any operator in the \textit{operator} field of an increment-operator will always have a meaning, like we can imagine in this situation:
 $$1\ 1\ 1\ 2\ 1\ 1\ 2\ 1\ 2\ 3\ 1\ 1\ 2\ 1\ 2\ 3\ 1\ 2\ 3\ 4$$
 Compression would give:
-$$(increment(1)(1)(argument))\ (increment(1)(1)(argument))\ (increment(1)(2)(argument))\ (increment(1)(1)(argument))\ (increment(1)(2)(argument))\ (increment(1)(3)(argument))\ (increment(1)(1)(argument))\ (increment(1)(2)(argument))\ (increment(1)(3)(argument))\ (increment(1)(4)(argument))$$
+$$(increment(1)(1)(arg))$$
+$$(increment(1)(1)(arg))\ (increment(1)(2)(arg))$$
+$$(increment(1)(1)(arg))\ (increment(1)(2)(arg))\ (increment(1)(3)(arg))$$
+$$(increment(1)(1)(arg))\ (increment(1)(2)(arg))\ (increment(1)(3)(arg))\ (increment(1)(4)(arg))$$
 An other time would give:
-$$(increment(increment(1)(1)(argument))(1)(times))\ (increment(increment(1)(1)(argument))(2)(times))\ (increment(increment(1)(1)(argument))(3)(times))\ (increment(increment(1)(1)(argument))(4)(times))$$
+$$(increment(increment(1)(1)(arg))(1)(times))$$
+$$(increment(increment(1)(1)(arg))(2)(times))$$
+$$(increment(increment(1)(1)(arg))(3)(times))$$
+$$(increment(increment(1)(1)(arg))(4)(times))$$
 And a last one:
-$$(increment(increment(increment(1)(1)(argument))(1)(times))(4)(times))$$
+$$(increment(increment(increment(1)(1)(arg))(1)(times))(4)(times))$$
 
 This solution is findable, putting apart the complexity problem (see below), and a huge problem which is at second iteration, how did he know that increment applied once applied only on times and not something else?
-I choose 'times' because it has hence be able to compress a last time given that all increment operators applied on 'times', but I had no right to do so.
+I choose 'times' because it has hence been able to compress a last time given that all increment operators applied on 'times', but I had no right to do so.
 
 During a meeting with both Samuel Tardieu and Jean-Louis Dessalles, this solution worked pretty well, putting apart some complexity problems: sometimes 'good' -read 'expected'- solutions were not kept because they costed more than uncompressed sequence.
 For example, with $1\ 2\ 2\ 3\ 3\ 4$, the program considered three increments of two times in array, but rejected it.
-For the 'dirty' where-to-apply solution, Samuel cleverly suggested that instead of a restrictive three-choices field, I should use a indexes list which could also handle deepness which could indicate where the increment-operator should apply. This is the solution I adopted and customized in my final version.
+For the 'dirty' where-to-apply solution, Samuel cleverly suggested that instead of a restrictive three-choices field, I should use a indexes list which could also handle deepness indicating where the increment-operator should apply. This is the solution I adopted and customized in my final version.
 
 \section{Current solution}
 
+Current solution is axed on Factor's suffixed way: an operator is represented by a letter, $C$ for copy and $I$ for increment, and applies on a specified number of arguments \textit{before} it.
+Elements in a compressed sequence are only compressed sequences, digits or operators letters.
+Customized indexed work this way: increment operators own in their \textit{where} field a sequence of digits, which are indexes representing an element's absolute position in extended sequence.
+For example, let us consider the following sequence:
+$$\{\ 0\ 1\ \{\ 2\ \{\ 3\ 4\ \}\ 5\ \{\ 6\ \}\ \}\ 7\ \{\ 8\ \}\ 9\ \}$$
+Digits represent each element's index.
+Hence, any deepness level can be reached, and no need is to recall structural information with for example tree indexes, in which case element 4 would be accessed with 3.1.1 instead of just 4.
+This notation is easier to manipulate and resulting \textit{where} sequence may even be compressed!
+Jean-Louis Dessalles wasn't really satisfied by this index solution: it wouldn't respect Kantian structural form of the model (we should be able to manipulate shapes or vegetables as well) and structure is absolutely not represented using it.
+He suggested the use of masks, more 'natural' and compressed than my indexes notation, but it doesn't solve the structure's respect problem and is actually in bijection with my system (as it is more important to act simply and 'humanly' than saving RAM, we can neglect the compression difference).
+
+Here is an example of using this system on our favorite example:
+$$1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4$$
+$$1\ 1\ C\ 2\ 2\ C\ 3\ 3\ C\ 4\ 4\ C$$
+$${\ 1\ 1\ C\ }\ {\ 0\ 1\ }\ 4\ I$$
+We only have one operator left, just with its arguments.
+We increment its \textit{times} field:
+$${\ 1\ 1\ C\ }\ {\ 0\ 1\ }\ 5\ I$$
+And decompress it to obtain logical extension:
+$$1\ 1\ C\ 2\ 2\ C\ 3\ 3\ C\ 4\ 4\ C\ 5\ 5\ C$$
+$$1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4\ 5\ 5\ 5\ 5\ 5$$
+
+\section{Backtracking with Factor}
+
+Let us see deeper how search algorithm works, using Factor's backtracking power.
+TODO
+
 \section{Ways to continue}
+
+\subsection{Once applied increment operators}
+
+As we saw before, when we find an increment operator used only once (\textit{times} = 1), its \textit{where} field doesn't mean anything, as when decompressed, \textit{argument} is only extracted, $I$, \textit{times} and \textit{where} being simply removed form the sequence.
+Normally, such a representation should be rejected because it trivially is less compressed than just writing \textit{argument} as is.
+It may be useful in 'Dirty' solution example (\ref{once_example}):
+$$1\ 1\ 1\ 2\ 1\ 1\ 2\ 1\ 2\ 3\ 1\ 1\ 2\ 1\ 2\ 3\ 1\ 2\ 3\ 4$$
+At first
 
 \newpage
 
 \begin{thebibliography}{9}
 
 \bibitem{samuel} Samuel Tardieu's website: \url{http://www.rfc1149.net/}
-\bibitem{jld} Jean Louis Dessalles' website: \url{http://perso.telecom-paristech.fr/~jld/}
+\bibitem{jld} Jean-Louis Dessalles' website: \url{http://perso.telecom-paristech.fr/~jld/}
 \bibitem{starting_point} A starting point: \url{http://icc.enst.fr/PLC/Learn.html}, section Complexity
 \bibitem{factor} Factor language: \url{http://factorcode.org/}
 \bibitem{wikipedia_kolmogorov} Kolmogorov's Complexity on Wikiedia: \url{http://en.wikipedia.org/wiki/Kolmogorov_complexity}
