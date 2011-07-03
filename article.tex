@@ -9,8 +9,7 @@
 \usepackage[nottoc, notlof, notlot]{tocbibind}
 \usepackage{hyperref}
 \usepackage{color}
-%  {\color{blue} minimal}
-%apply to
+
 \begin{document}
 
 \title{Sequence complexity}
@@ -24,6 +23,11 @@
 \tableofcontents
 
 \newpage
+
+\section*{Acknowledgements}
+
+My warm thanks to Jon Harper, who helped me a lot through the difficult process of learning Factor, and also to my two professors,
+Samuel Tardieu and Jean-Louis Dessalles, my supervisors, who spent time discussing my project and helping me.
 
 \section{Introduction}
 
@@ -92,7 +96,7 @@ At first, I thought about using Factor's \textit{tuples}, special fields sequenc
 I defined a tuple \textit{operator} containing a field named \textit{times}.
 Operator had the following methods, or \textit{generic functions} in Factor:
 \begin{itemize}
-  \item{\textit{cost}, a function returning an operator's cost which adds the values of its fields.
+  \item{\textit{cost}, a function returning an operator's cost which adds the values of its fields.}
   \item{\textit{apply}, a function which uses a sequence and generates another sequence by uncompressing this operator on it (often using only its first element).}
   \item{\textit{search}, a function which tries to find the current operator's application on a sequence.}
 \end{itemize}
@@ -169,71 +173,65 @@ With this solution, some of the previous problems were solved:
 a list is only extensible if it can be reduced to one operator,
 and to extend it we only have to increment its \textit{times} field and then recursively decompress it.
 Furthermore, putting any operator in the \textit{argument} field of an increment-operator will always have a meaning,
-as we can imagine in the following situation:
+as we can imagine in the following more complicated situation:
 $$1\ 1\ 1\ 2\ 1\ 1\ 2\ 1\ 2\ 3\ 1\ 1\ 2\ 1\ 2\ 3\ 1\ 2\ 3\ 4$$
-Compression would give (sequence has been cut for better understanding):
+which can be segmented in the following fashion:
+$$1*\ 1;\ 1\ 2*\ 1;\ 1\ 2;\ 1\ 2\ 3*\ 1;\ 1\ 2;\ 1\ 2\ 3;\ 1\ 2\ 3\ 4$$
+Compression would give (the sequence has been cut for the sake of clarity):
 $$(increment(1)(1)(arg))$$
 $$(increment(1)(1)(arg))\ (increment(1)(2)(arg))$$
 $$(increment(1)(1)(arg))\ (increment(1)(2)(arg))\ (increment(1)(3)(arg))$$
 $$(increment(1)(1)(arg))\ (increment(1)(2)(arg))\ (increment(1)(3)(arg))\ (increment(1)(4)(arg))$$
 
-An other time would give:
-$$(increment(increment(1)(1)(arg))(1)(times))$$
+Another time would give:
+$$(increment(increment(1)(1)(arg))(1)(\textcolor{red}{times}))$$
 $$(increment(increment(1)(1)(arg))(2)(times))$$
 $$(increment(increment(1)(1)(arg))(3)(times))$$
 $$(increment(increment(1)(1)(arg))(4)(times))$$
 And a last one:
 $$(increment(increment(increment(1)(1)(arg))(1)(times))(4)(times))$$
 
-This solution is findable, putting apart the complexity problem (see below), and a huge problem which is at second iteration, how did it know that increment applied once applied only on \textit{times} and not something else?
-I chose \textit{times} because it has been able to compress a last time, given that all increment operators applied on \textit{times}, but I had no right to do so.
+This solution is findable, apart from the complexity problem (see below), and the following problem: at the second iteration, how did it know that increment, when applied once, applied only to \textit{times} and not to something else?
+I chose \textit{times} because it has been able to compress at the last iteration, given that all the increment operators applied to \textit{times}, but I had no right to do so.
 
-During a meeting with both Samuel Tardieu and Jean-Louis Dessalles, this solution worked pretty well, {\color{blue}{apart from 
-}}
-some complexity problems: sometimes "good" (think "expected") solutions were not kept because they {\color{blue}{cost
-}}
- more than {\color{blue}{the
-}} 
-uncompressed sequence.
-For example, with $1\ 2\ 2\ 3\ 3\ 4$, the program considered three increments of two times in a row, but rejected it.
-For the "dirty" where-to-apply solution, Samuel cleverly suggested that instead of a restrictive {\color{blue}{
-three-choice }}field, I should use {\color{blue}{an indexed
-}} list which could also handle deepness, indicating where the increment-operator should apply.
+During a meeting with both Samuel Tardieu and Jean-Louis Dessalles, this solution worked well enough, apart from 
+some complexity problems: sometimes "good" (think "expected") solutions were not kept because they cost
+more than the uncompressed sequence.
+For example, Samuel Tardieu suggested $1\ 2\ 2\ 3\ 3\ 4$, with segmentation $1\ 2\ *\ 2\ 3\ *\ 3\ 4$ in mind,
+the program considered three increments in a row, each applied twice, but rejected it.
+For the "dirty" where-to-apply solution, Samuel Tardieu suggested that instead of a restrictive
+three-choice field, I should use an indexed list which could also handle deepness, indicating where the increment-operator should apply.
 This is the solution I adopted and customized in my final version.
 
 \section{Current solution}
 
-Current solution is axed on Factor's suffixed way: an operator is represented by a letter, $C$ for copy or $I$ for increment, and applies {\color{blue}{to
-}}
- a specified number of arguments BEFORE it.
-Elements in a compressed sequence are only compressed sequences, digits or {\color{blue}{operator
-}}
- letters.
-Customized indexes work that way: increment operators own in their \textit{where} field a sequence of digits, which are indexes representing an element's absolute position in extended \textit{argument}.
+The current solution is based on Factor's suffix paradigm: an operator is represented by a letter, $C$ for copy or $I$ for increment, and applies to
+a specified number of arguments BEFORE it.
+Elements in a compressed sequence are only compressed sequences, digits or operator letters.
+My customized indexes work that way: increment operators own in their \textit{where} field a sequence of digits,
+which are indexes representing an element's absolute position in the extended \textit{argument}.
 For example, let us consider the following sequence:
 $$\{\ a_0\ a_1\ \{\ a_2\ \{\ a_3\ a_4\ \}\ a_5\ \{\ a_6\ \}\ \}\ a_7\ \{\ a_8\ \}\ a_9\ \}$$
-Indexes are extended indexes.
-Hence, any deepness level can be reached, and there is no need to recall structural information, like with tree indexes, in which case element $a_4$ would be accessed with $2.1.1$ instead of $4$.
-This notation is easier to manipulate and resulting \textit{where} sequence may even be compressed!
+When extended, this sequence would be:
+$$\{\ a_0\ a_1\ a_2\ a_3\ a_4\ a_5\ a_6\ a_7\ a_8\ a_9\ \}$$
+I use the extended indexes.
+Hence, any deepness level can be reached, and there is no need to recall structural information,
+as with tree indexes, in which case element $a_4$ would be accessed with $2.1.1$ instead of simply $4$.
+This notation is easier to manipulate and the resulting \textit{where} sequence could even be compressed!
 
-Jean-Louis Dessalles wasn't really satisfied by this index solution: it wouldn't respect {\color{blue}{the
-}}
- Kantian structural form of the model
-(we should be able to manipulate shapes or vegetables as well and using them all along the model) and the structure is absolutely not represented using it.
-He suggested the use of masks, more "natural" and compressed than my {\color{blue}{indexed
-}}
- notation, but it doesn't solve the structure's respect problem and it is actually in bijection with my system
-(as it is more important to act simply and 'humanly' than {\color{blue}{to save 
-}} RAM, we can neglect the compression difference).
+Jean-Louis Dessalles wasn't really satisfied with this index solution:
+it wouldn't respect the Kantian structural form of the model
+(we should be able to manipulate shapes or vegetables as well, and use only them in the model).
+Moreover, the structure is absolutely not represented.
+He suggested the use of masks, more "natural" and compressed than my index notation,
+but this doesn't solve the Kantian problem and it is actually in bijection with my system
+(as it is more important to act simply and 'humanly' than to save RAM, we can neglect the compression difference).
 
-For easier representation, an \textit{argument} or a \textit{where} field reduced to only one element is not contained {\color{blue}{in
-}} a sequence, but inserted as is.
+For easier representation, an \textit{argument} or a \textit{where} field reduced to only one element is not contained in a sequence, but inserted as is.
 
-For {\color{blue}{result
-}}
- purpose, $C$ and $I$ words don't cost anything.
+For result purposes, $C$ and $I$ words won't cost anything.
 
-We also define operators' arguments order:
+We also define the order of the arguments of the operators:
 \begin{itemize}
   \item{$WHAT\ TIMES\ C$}
   \item{$WHAT\ WHERE\ TIMES\ I$}
@@ -243,121 +241,111 @@ Here is an example of the use of this system on our favorite example:
 $$1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4$$
 $$1\ 1\ C\ 2\ 2\ C\ 3\ 3\ C\ 4\ 4\ C$$
 $$\{\ 1\ 1\ C\ \}\ \{\ 0\ 1\ \}\ 4\ I$$
-We only have one operator left, just with its arguments.
+We only have one operator left, $I$, with just its arguments.
 We increment its \textit{times} field:
 $$\{\ 1\ 1\ C\ \}\ \{\ 0\ 1\ \}\ 5\ I$$
-And decompress it to obtain logical extension:
+And decompress it to obtain its logical extension:
 $$1\ 1\ C\ 2\ 2\ C\ 3\ 3\ C\ 4\ 4\ C\ 5\ 5\ C$$
 $$1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4\ 5\ 5\ 5\ 5\ 5$$
 
 \section{Backtracking with Factor}
 
-Let us {\color{blue}{now take a closer look at at how the search algorithm works
-}}, using Factor's backtracking power.
+Let us now take a closer look at how the search algorithm works, using Factor's backtracking power.
 
-\subsection{\textcolor{green}{amb} and \textcolor{red}{fail}}
+\subsection{\textcolor{blue}{amb} and \textcolor{red}{fail}}
 
-Using continuations in factor, we can use \textcolor{green}{amb} to test all elements in a sequence.
-When \textcolor{red}{fail} is called, the program comes back to the last \textcolor{green}{amb} call and tries its next element.
+Using continuations in factor, we can use the existing function \textcolor{blue}{amb} to test all the elements of a sequence.
+When \textcolor{red}{fail} is called, the program backtracks to the last \textcolor{blue}{amb} call and tries its next element.
 If there is no element left, this level is abandoned and the previous one is considered.
-This system, quite close to {\color{blue}{Prolog's
-}}, is useful {\color{blue}{for trying
-}}
- possibilities at different levels, and {\color{blue}{backtracks to the next possibility in case of failure.
-}}
-
+This system, quite close to Prolog's, is useful for trying
+possibilities at different levels, and backtracks to the next possibility in case of failure.
 
 \subsection{Search order}
 
-As it is able to complete incomplete sequences, the program will first try to remove from 0 to the length minus 2 elements.
+My program is able to complete incomplete sequences: it will first try to remove a number of elements from 0 to the sequence length minus 2.
 At each removal, it will check if when extended the resulting sequence contains the initial one and \textcolor{red}{fail} otherwise.
 
-If nothing is found, it will extract the given sequence's elements in such a way that all elements are present only once, and ordered from the last found to the first one.
-The program will then try all combinations with a adding length limit of the initial sequence's length.
-This part has a $n!$ complexity, but it is rarely reached because it is easy to find a solution.
+If nothing is found, the program will extract the elements of the given sequence in such a way that all elements are present only once, and ordered from the last found to the first one.
+The program will then try to add all combinations, it starts with adding one element, then two, and so on until the length of the initial sequence is reached.
+This part has a theoretically factorial complexity, but in practice this is almost never reached because a solution is quickly found.
 
-Given a sequence on which we would like to search, we try to compress it using several \textcolor{green}{amb}:
+Given a sequence which we would like to search on, we try to compress:
 
 At first, we try an operator, $C$ and then $I$.
 
 Given an operator, we decide a searching size.
-We will try from 1 up to the sequence's length.
-A size represents what is taken from a list in order to search {\color{blue}{it
-}}.
-This parameter is important, for example to detect incrementation from an operator to another, {\color{blue}{as in the example shown in the next section .
-}}
+We will try from 1 up to the length of the sequence.
+A size represents what is taken from a list in order to search it.
+This parameter is important, for example to detect incrementation from an operator to another, as in the example shown in the previous section.
 
-Once an operator and a size {\color{blue}{have
-}} been chosen, we compress the sequence from the left to the right by going as far as possible and appending result to previous results until the rest is empty
-(if the rest is not long enough to be taken \textit{size} elements, the program will \textcolor{red}{fail}).
+Once an operator and a size have been chosen, we compress the sequence from the left to the right by going as far as possible and appending the result to the previous results until the rest is empty
+(if the rest is not long enough to be shortened by \textit{size} elements, the program will \textcolor{red}{fail}).
 
-Once a list has been compressed, it is rejected if all found operators are only applied once.
+Once a list has been compressed, it is rejected if all the operators which have been found are only applied once.
 
-Its complexity is then compared to the initial sequence's one, and the best one is kept (if complexities are equal, the previous sequence is kept and we \textcolor{red}{fail}).
+Its complexity is then compared to that of the initial sequence, and the best one is kept (if complexities are equal, we \textcolor{red}{fail}).
 
-If we were able to compress until we have got only an operator and its arguments (3 for $C$ and 4 for $I$), we check if arguments are coherent and if so, finally extend it, by increasing its times and then uncompress the final sequence.
+If we were able to compress until only one operator and its arguments (2 for $C$ and 3 for $I$) are left,
+we check that the arguments are coherent and if so, we finally extend it: we increase its \textit{times} and then decompress the final sequence.
 
-I also implemented a way to look after ALL solutions, but as the adding part has a $n!$ complexity, this way takes a very long time to return.
+I also implemented a way to look at ALL the solutions, but as the adding part has a factorial complexity, this takes a very long time to terminate.
 
-For any implementation considering, see the program documentation as explained in my git repository README.
-I spent quite a long time writing it as exhaustive as possible, so that a good comprehension of the program is possible.
+For questions on implementation, see the program documentation as explained in my git repository README.\cite{git}
+I spent quite a long time writing it as exhaustively as possible, in order to insure a good comprehension of the program.
 
-\section{Ways to continue}
+\section{Perspectives}
 
-\subsection{Once applied increment operators}
+\subsection{Increment operators which are applied only once}
 
-As we saw before, when we find an increment operator used only once (\textit{times} = 1), its \textit{where} field doesn't mean anything, as when it is decompressed, \textit{argument} is only extracted, $I$, \textit{times} and \textit{where} fields being simply removed from the sequence.
+As we saw before, when we find an increment operator which is used only once (\textit{times} = 1),
+its \textit{where} field doesn't mean anything, as when it is decompressed, only \textit{argument} is extracted,
+whereas the $I$, \textit{times} and \textit{where} fields are simply removed from the sequence.
 
 Normally, such a representation should be rejected because trivially, it is less compressed than just writing \textit{argument} as is.
-It may be useful in this example :
+It may be useful in this example:
 $$1\ 1\ 1\ 2\ 1\ 1\ 2\ 1\ 2\ 3\ 1\ 1\ 2\ 1\ 2\ 3\ 1\ 2\ 3\ 4$$
-Let us compress it using our method (sequence has been cut for better understanding):
+Let us compress this sequence using our method (again the sequence has been cut for the sake of clarity):
 $$1\ 0\ 1\ I$$
 $$1\ 0\ 1\ I\ 1\ 0\ 2\ I$$
 $$1\ 0\ 1\ I\ 1\ 0\ 2\ I\ 1\ 0\ 3$$
 $$I\ 1\ 0\ 1\ I\ 1\ 0\ 2\ I\ 1\ 0\ 3\ I\ 1\ 0\ 4\ I$$
 
-This is of course one {\color{blue}{of many
-}} obtainable solutions, but it is findable by our process so we have the right to consider it.
+This is of course one of many obtainable solutions, but it is findable by our process so we have the right to consider it.
 Here we will make an "error" which will cost us the solution:
 $$\{\ 1\ 0\ 1\ I\ \}\ \textcolor{red}{0}\ 1\ I$$
 $$\{\ 1\ 0\ 1\ I\ \}\ \textcolor{green}{2}\ 2\ I$$
 $$\{\ 1\ 0\ 1\ I\ \}\ \textcolor{green}{2}\ 3\ I$$
 $$\{\ 1\ 0\ 1\ I\ \}\ \textcolor{green}{2}\ 4\ I$$
-Now, we would like to obtain
-$$\{\ \{\ 1\ 0\ 1\ I\ \}\ 2\ 1\ I\ \}\ 6\ 4\ I$$
-but our program will \textcolor{red}{fail} when comparing $0$ and $2$.
+Now, we would like to obtain:
+$$\{\ \{\ 1\ 0\ 1\ I\ \}\ 2\ 1\ I\ \}\ 5\ 4\ I$$
+but our program will \textcolor{red}{fail} when comparing $0$ with $2$.
 
-A solution would be to use a "joker", like Factor's $f$ in order to warn, when compared with an other value, that this value has not been defined yet.
-For now, the program is not able to solve this problem without removing the first lonely $1$.
+A solution could be to use a "joker", like Factor's $f$ in order to warn, when compared with an other value, that this value has not been defined yet.
+For now, the program is not able to solve this problem without removing the first isolated $1$.
 
 \subsection{Masks and indexes}
 
 An other way to improve the program would be to solve the "how to indicate where to apply the increment-operator in a natural, compressed and Kantian way" problem.
 
-It has been there since the beginning of the project, and even if{\color{blue}{many more or less 
-}} elegant solutions have been found, a lot of work {\color{blue}{remains
-}} to been done on this subject.
+This has been a problem since the beginning of the project, and even if many more or less
+elegant solutions have been found, a lot of work remains to be done on this subject.
 
 \subsection{Short term memory}
 
-As explained before, the use of short memory is not reliable and quite difficult to implement.
-Even though a whole implementation has been done, it has not used in final version because of its random behaviour.
+As explained above, the use of short memory is not reliable and quite difficult to implement.
+Even though a whole implementation of the use of short memory has been done, it has not linked into my final version because of its random behaviour.
 
 An improvement would be to find a way to use it, while keeping this program's reliability and power.
 
 \section{Conclusion}
 
-This project has been an excellent way to use, at a project scale, a new and powerful language {\color{blue}{such 
-}}as Factor.
+This project has been an excellent way to use, at a project scale, a new and powerful language such as Factor.
 
-It {\color{blue}{turned out to be 
-}}difficult to use at first but incredibly efficient for this particular subject.
-The project itself proved to be harder than expected, because of its 'human' restriction.
-It has been a opportunity to consider and try to bring solutions in a little known field.
+It turned out to be difficult to use at first but incredibly efficient for this particular subject.
+The project itself proved to be harder than expected, because of its "human" restriction.
+It has been an opportunity to work and try to contribute solutions to a little known field.
 
-This was an enriching experience and {\color{blue}{well worth the time spent 
-}}working on it.
+This was an enriching experience and well worth the time spent working on it.
 
 \newpage
 
@@ -368,6 +356,7 @@ This was an enriching experience and {\color{blue}{well worth the time spent
 \bibitem{starting_point} A starting point: \url{http://icc.enst.fr/PLC/Learn.html}, section Complexity
 \bibitem{factor} Factor language: \url{http://factorcode.org/}
 \bibitem{wikipedia_kolmogorov} Kolmogorov's Complexity on Wikiedia: \url{http://en.wikipedia.org/wiki/Kolmogorov_complexity}
+\bibitem{git} My git Hub repository: \url{https://github.com/Rekamux/Free-Project}
 
 \end{thebibliography}
 
