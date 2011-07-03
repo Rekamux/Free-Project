@@ -51,7 +51,7 @@
 \title[Free Project]{Sequence Complexity}
 \author{Axel Schumacher}
 \institute{Télécom Paristech}
-\date{2011-07-04}
+\date{July $4^{th}$ 2011}
 
 
 %---------------------------------------
@@ -74,7 +74,7 @@
     \item{1 1 1 1 2 2 ... ? }
   \end{itemize}
   \begin{center}
-  Completing those sequences is quite easy for an human being, since it has trivial notions in math\\
+  Completing those sequences: easy for a human being (trivial notions in math)\\
   What about computers?
   \end{center}
 \end{frame}
@@ -84,8 +84,8 @@
     \item{
       Two operators
       \begin{itemize}
-        \item{Copy : C}
-        \item{Increment : I}
+        \item{Copy: C}
+        \item{Increment: I}
       \end{itemize}}
     \item{No combinatory explosion}
     \item{Work and think in a "human" way}
@@ -96,40 +96,40 @@
   Suffixed notation, close to Factor:\\
   \begin{itemize}
     \item{
-      Copy :\\
-      What How\_Many C\\
-      Examples :
+      Copy:\\
+      \textit{What Times C}\\
+      Examples:
       \begin{itemize}
-        \item{5 5 5 5 -> 5 4 C}
-        \item{1 2 1 2 1 2 -> \{1 2\} 3 C}
+        \item{5 5 5 5 $\rightarrow$ 5 4 C}
+        \item{1 2 1 2 1 2 $\rightarrow$ \{1 2\} 3 C}
       \end{itemize}}
     \item{
-      Increment :\\
-      What Where How\_Many I\\
-      Examples :
+      Increment:\\
+      \textit{What Where Times I}\\
+      Examples:
       \begin{itemize}
-        \item{1 2 3 4 -> 1 0 4 I}
-        \item{1 1 1 2 1 2 3 1 3 -> \{1 1 1\} \{0 2\} 3 I}
+        \item{1 2 3 4 $\rightarrow$ 1 0 4 I}
+        \item{1 1 1 2 1 2 3 1 3 $\rightarrow$ \{1 1 1\} \{0 2\} 3 I}
       \end{itemize}}
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Extend a sequence}
   \begin{center}
-    If we can compress a sequence to one operator and its arguments\\
-    We just have to increment its \textit{How\_Many} field and decompress
+    If we can compress a sequence to one operator and its arguments,\\
+    we just have to increment its \textit{Times} field and decompress
   \end{center}
 \end{frame}
 
 \begin{frame}{Search order}
   We try:
   \begin{itemize}
-    \item{To remove from 0 up to length - 2 elements}
-    \item{An  operator}
-    \item{A tested size}
+    \item{to remove from 0 up to (length - 2) elements}
+    \item{an operator}
+    \item{a tested size}
   \end{itemize}
-  With all those choices, we try to compress the whole sequence\\
-  We try another one if complexity is too high
+  With all those choices, we try to compress the whole sequence.\\
+  We try another one if complexity is too high.
 \end{frame}
 
 \begin{frame}{Possible improvements}
@@ -145,9 +145,9 @@
 
 \begin{frame}{Conclusion}
   \begin{center}
-  A not that easy subject\\
+  Subject not that easy\\
   Factor is a powerful language\\
-  Very instructive project
+  Very enlightening project
   \end{center}
 \end{frame}
  

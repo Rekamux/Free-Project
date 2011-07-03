@@ -32,7 +32,8 @@ A whole documentation has been written around this library, even for private wor
 To read it, the easiest way is to follow those steps:
 -launch "factor" program
 -type "USE: complexity"
-click on the 'HELP' button in the GUI after having loaded 'complexity' library and search 'complexity'.
+-click "HELP" button
+-search "complexity"
 You can select complexity for main words, complexity.private for inside words, complexity.tools for useful tools (that may also be useful in other libraries), and complexity.tools.private for its inside words.
 
 
