@@ -26,12 +26,12 @@
 
 \section*{Acknowledgements}
 
-My warm thanks to Jon Harper, who helped me a lot through the difficult process of learning Factor, and also to my two professors,
+My warm thanks to Jon Harper, who helped me through the difficult process of learning Factor, and also to my two professors,
 Samuel Tardieu and Jean-Louis Dessalles, my supervisors, who spent time discussing my project and helping me.
 
 \section{Introduction}
 
-As a student at Télécom ParisTech, I chose to follow the 'Non-classic language paradigms' course with Samuel Tardieu\cite{samuel}, 
+As a student at Télécom ParisTech, I chose to follow the 'Non-classical language paradigms' course with Samuel Tardieu\cite{samuel}, 
 while working on a free project with Jean-Louis Dessalles\cite{jld}.
 Jean-Louis Dessalles suggested a project based on a Komolgorov complexity problem:
 given a small sequence of digits, shapes or characters, I had to design a small program able to complete this 
@@ -39,7 +39,7 @@ list as well as an eight-year-old child. \cite{starting_point}
 
 The main goal of this project was to apply Kolmogorov theory to the given list in order to compress it in an
 optimal and human way. This will then enable us to extend that list using the compression.
-During the 'Non-classic language paradigms course, we studied uncommon languages such
+During the "Non-classical language paradigms" course, we studied uncommon languages such
 as Haskel, Scala or Factor; we also were to 
 perform a small implementation project using one of those languages.
 
@@ -59,7 +59,7 @@ That is why much research is left to be done on the subject, always with the sam
 We will first illustrate the problem with an example.
 Let us imagine a very simple sequence:
 $$1\ 2\ 2\ 3\ 3\ 3$$
-Any eight-year old child would easily suggest
+Any eight-year-old child would easily suggest
 that a good continuation of this sequence would be:
 $$1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4$$
 But how can one be so sure about it?
@@ -82,7 +82,7 @@ This model is easily explainable considering that a human, if he was able to sol
 would naturally try this operator first when confronted with a new problem.
 This list is implemented but not used because of its unpredictable nature.
 
-That is why in the present version a standard \textit{binary encoding} is used to compute the complexity of a list , with 0 costing 0.
+That is why in the present version a standard \textit{binary encoding} is used to compute the complexity of a list, with 0 costing 0.
 
 Given a way to compute complexity, one can try to compress a list using \textit{operators} while the
 resulting complexity is lower than that of the initial sequence.
@@ -91,7 +91,7 @@ resulting complexity is lower than that of the initial sequence.
 
 \subsection{Three operators}
 
-At first, I thought about using Factor's \textit{tuples}, special fields sequences which are easily sharable between descendants, as in standard \textit{Object Oriented Programming}.
+At first, I thought about using Factor's \textit{tuples}, special sequences of fields which are easily sharable between descendants, as in standard \textit{Object Oriented Programming}.
 
 I defined a tuple \textit{operator} containing a field named \textit{times}.
 Operator had the following methods, or \textit{generic functions} in Factor:
@@ -103,9 +103,9 @@ Operator had the following methods, or \textit{generic functions} in Factor:
 
 Given those methods, I defined three operators:
 \begin{itemize}
-  \item{A copy operator: using its predecessor's \textit{times} field, copies a \textit{times} number of times the given argument.}
+  \item{A copy operator: using its predecessor's \textit{times} field, copies the given argument a \textit{times} number of times.}
   \item{
-    An increment operator: increments and copies a \textit{times} number of times the given argument.
+    An increment operator: increments and copies the given argument a \textit{times} number of times.
     If this argument is an operator, it will copy it by incrementing its \textit{times} field.}
   \item{A step operator: also contains a \textit{gap} argument and an \textit{operator} field, applies its operator by skipping as many
 elements as given by \textit{gap} on a list.}
@@ -116,7 +116,7 @@ $$1\  2\  2\  3\  3\  3\  4\  4\  4\  4$$
 When compressed once using copy operator, it gave:
 $$(copy\ times(1))\ 1\ (copy\ times(2))\ 2\ (copy\ times(3))\ 3\ (copy\ times(4))\ 4$$
 Here, we can easily see that we have an increment on the digits and on the operators, but separated by one element each time.
-Using step operator, it gives:
+Using the step operator, it gives:
 $$(step\ operator\ times(4)\ gap(1)\ operator(increment\ times(1)))\ (copy\ times(1))\ 1\ 2\ 3\ 4$$
 The step operator will be applied four times with a gap of one.
 As between each gap we only have one element, the increment operator in \textit{operator} field only applies once each time.
@@ -126,7 +126,7 @@ $$(step\ operator\ times(4)\ gap(1)\ operator(increment\ times(1))) (copy\ times
 $$(increment\ times(4))\ 1$$
 
 In terms of complexity, if we count 1 for each operator plus the recursive cost of all its arguments,
-the raw sequence $1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4$ will cost 23, while the compressed version costs 14.
+the raw sequence $1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4$ will cost 23, while the compressed version costs only 14.
 Hence, we can say that we have a compressed version.
 
 Copy and increment search were easy, I just had to compare the current result with the next sequence's element.
@@ -141,13 +141,13 @@ what specific operator should we "times-increment"?
 On this particular example, it is the first operator of the list, but can we be sure about it?
 Moreover, how can we be sure about the fact that a list \textit{is} extensible?
 
-This solution displeased Jean-Louis Dessalles, because of this not really "natural" strange step-operator, and the difficulty 
+This solution displeased Jean-Louis Dessalles, because of this not really "natural" strange step operator, and the difficulty 
 for it to be understood and used.
 That is why he asked me to use only two operators: copy and increment.
 His point was that in the previous example, the 
 increment operator should have been applied at the same time on copy operator and on digits.
 Therefore, I should put the argument into the operator instead of leaving it in the list.
-Then, the increment operator would have seen a sequence of copy operator incrementing at the same time their \textit{times} and \textit{argument} fields.
+Then, the increment operator would have seen a sequence of copy operators incrementing at the same time their \textit{times} and \textit{argument} fields.
 
 \subsection{Two operators with an inelegant application}
 
@@ -166,7 +166,7 @@ $$(increment(copy(1)(1))(4)(both))$$
 
 The \textit{where} field doesn't have any meaning when applied to
 a digit, and this is already a structural problem.
-This same field also doesn't have any meaning when applied to an increment-operator: it cannot apply to its \textit{argument} because the contained increment-operator takes care of that,
+This same field also doesn't have any meaning either when applied to an increment-operator: it cannot apply to its \textit{argument} because the contained increment-operator takes care of that,
 and hence can only apply on its \textit{times}.
 
 With this solution, some of the previous problems were solved:
@@ -182,7 +182,6 @@ $$(increment(1)(1)(arg))$$
 $$(increment(1)(1)(arg))\ (increment(1)(2)(arg))$$
 $$(increment(1)(1)(arg))\ (increment(1)(2)(arg))\ (increment(1)(3)(arg))$$
 $$(increment(1)(1)(arg))\ (increment(1)(2)(arg))\ (increment(1)(3)(arg))\ (increment(1)(4)(arg))$$
-
 Another time would give:
 $$(increment(increment(1)(1)(arg))(1)(\textcolor{red}{times}))$$
 $$(increment(increment(1)(1)(arg))(2)(times))$$
@@ -214,13 +213,13 @@ For example, let us consider the following sequence:
 $$\{\ a_0\ a_1\ \{\ a_2\ \{\ a_3\ a_4\ \}\ a_5\ \{\ a_6\ \}\ \}\ a_7\ \{\ a_8\ \}\ a_9\ \}$$
 When extended, this sequence would be:
 $$\{\ a_0\ a_1\ a_2\ a_3\ a_4\ a_5\ a_6\ a_7\ a_8\ a_9\ \}$$
-I use the extended indexes.
+I used the extended indexes.
 Hence, any deepness level can be reached, and there is no need to recall structural information,
 as with tree indexes, in which case element $a_4$ would be accessed with $2.1.1$ instead of simply $4$.
 This notation is easier to manipulate and the resulting \textit{where} sequence could even be compressed!
 
 Jean-Louis Dessalles wasn't really satisfied with this index solution:
-it wouldn't respect the Kantian structural form of the model
+it would not respect the Kantian structural form of the model
 (we should be able to manipulate shapes or vegetables as well, and use only them in the model).
 Moreover, the structure is absolutely not represented.
 He suggested the use of masks, more "natural" and compressed than my index notation,
@@ -236,7 +235,6 @@ We also define the order of the arguments of the operators:
   \item{$WHAT\ TIMES\ C$}
   \item{$WHAT\ WHERE\ TIMES\ I$}
 \end{itemize}
-
 Here is an example of the use of this system on our favorite example:
 $$1\ 2\ 2\ 3\ 3\ 3\ 4\ 4\ 4\ 4$$
 $$1\ 1\ C\ 2\ 2\ C\ 3\ 3\ C\ 4\ 4\ C$$
@@ -278,7 +276,8 @@ We will try from 1 up to the length of the sequence.
 A size represents what is taken from a list in order to search it.
 This parameter is important, for example to detect incrementation from an operator to another, as in the example shown in the previous section.
 
-Once an operator and a size have been chosen, we compress the sequence from the left to the right by going as far as possible and appending the result to the previous results until the rest is empty
+Once an operator and a size have been chosen,
+we compress the sequence from the left to the right by going as far as possible and appending the result to the previous results until the rest is empty
 (if the rest is not long enough to be shortened by \textit{size} elements, the program will \textcolor{red}{fail}).
 
 Once a list has been compressed, it is rejected if all the operators which have been found are only applied once.
@@ -290,14 +289,14 @@ we check that the arguments are coherent and if so, we finally extend it: we inc
 
 I also implemented a way to look at ALL the solutions, but as the adding part has a factorial complexity, this takes a very long time to terminate.
 
-For questions on implementation, see the program documentation as explained in my git repository README.\cite{git}
+For questions on implementation, see the program documentation as explained in my git repository README\cite{git}.
 I spent quite a long time writing it as exhaustively as possible, in order to insure a good comprehension of the program.
 
 \section{Perspectives}
 
 \subsection{Increment operators which are applied only once}
 
-As we saw before, when we find an increment operator which is used only once (\textit{times} = 1),
+As seen before, when we find an increment operator which is used only once (\textit{times} = 1),
 its \textit{where} field doesn't mean anything, as when it is decompressed, only \textit{argument} is extracted,
 whereas the $I$, \textit{times} and \textit{where} fields are simply removed from the sequence.
 
@@ -343,7 +342,7 @@ This project has been an excellent way to use, at a project scale, a new and pow
 
 It turned out to be difficult to use at first but incredibly efficient for this particular subject.
 The project itself proved to be harder than expected, because of its "human" restriction.
-It has been an opportunity to work and try to contribute solutions to a little known field.
+It has been an opportunity to work and try to contribute solutions to a little-known field.
 
 This was an enriching experience and well worth the time spent working on it.
 
