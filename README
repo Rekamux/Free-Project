@@ -52,6 +52,11 @@ SLIDES:
 make slides
 
 
-CLEAN:
+CLEAN (exept PDF files):
 
 make clean
+
+
+SUPERCLEAN:
+
+make superclean
