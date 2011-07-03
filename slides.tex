@@ -2,7 +2,7 @@
 
 \usepackage[T1]{fontenc} 
 \usepackage[utf8]{inputenc}
-\usepackage[frenchb]{babel}
+\usepackage[english]{babel}
 %% \usepackage{pslatex}
 %% \usepackage{colortbl} 
 %% \usepackage{calc} 
@@ -48,10 +48,10 @@
 }
 
 
-\title[PLNC]{Extension de listes}
+\title[Free Project]{Sequence Complexity}
 \author{Axel Schumacher}
 \institute{Télécom Paristech}
-\date{27 juin 2011}
+\date{2011-07-04}
 
 
 %---------------------------------------
@@ -64,7 +64,7 @@
   \titlepage
 \end{frame}
 
-\begin{frame}{Présentation}
+\begin{frame}{Presentation}
   \begin{itemize}
     \item{1 2 3 4 ... ?}
     \item{9 9 9 ... ?}
@@ -74,39 +74,39 @@
     \item{1 1 1 1 2 2 ... ? }
   \end{itemize}
   \begin{center}
-  Compléter ces listes est très facile pour un être humain à partir de l'âge de 8 ans.\\
-  Qu'en est-il de l'ordinateur ?
+  Completing those sequences is quite easy for an human being, since it has trivial notions in math\\
+  What about computers?
   \end{center}
 \end{frame}
 
-\begin{frame}{Contraintes}
+\begin{frame}{Constraints}
   \begin{itemize}
     \item{
-      Deux opérateurs
+      Two operators
       \begin{itemize}
-        \item{Copie : C}
-        \item{Incrément : I}
+        \item{Copy : C}
+        \item{Increment : I}
       \end{itemize}}
-    \item{Pas d'explosion combinatoire}
-    \item{Une façon de fonctionner 'humaine'}
+    \item{No combinatory explosion}
+    \item{Work and think in a "human" way}
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Résolution}
-  Notation suffixée, proche du factor :\\
+\begin{frame}{Implementation}
+  Suffixed notation, close to Factor:\\
   \begin{itemize}
     \item{
-      Copie :\\
-      Quoi Combien C\\
-      Exemples :
+      Copy :\\
+      What How\_Many C\\
+      Examples :
       \begin{itemize}
         \item{5 5 5 5 -> 5 4 C}
         \item{1 2 1 2 1 2 -> \{1 2\} 3 C}
       \end{itemize}}
     \item{
-      Incrément :\\
-      Quoi Où Combien I\\
-      Exemples :
+      Increment :\\
+      What Where How\_Many I\\
+      Examples :
       \begin{itemize}
         \item{1 2 3 4 -> 1 0 4 I}
         \item{1 1 1 2 1 2 3 1 3 -> \{1 1 1\} \{0 2\} 3 I}
@@ -114,30 +114,41 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Étendre une liste}
+\begin{frame}{Extend a sequence}
   \begin{center}
-  Si on réussit à résumer une liste à un opérateur, il suffit d'incrémenter son nombre d'applications.
+    If we can compress a sequence to one operator and its arguments\\
+    We just have to increment its \textit{How\_Many} field and decompress
   \end{center}
 \end{frame}
 
-\begin{frame}{Ordre de recherche}
-  On utilise des amb sur :
+\begin{frame}{Search order}
+  We try:
   \begin{itemize}
-    \item{Opérateur}
-    \item{Taille}
-    \item{Répéter sur une liste}
+    \item{To remove from 0 up to length - 2 elements}
+    \item{An  operator}
+    \item{A tested size}
   \end{itemize}
-  On fail en cas de complexité trop élevée.
+  With all those choices, we try to compress the whole sequence\\
+  We try another one if complexity is too high
 \end{frame}
 
-\begin{frame}{Amélioration}
+\begin{frame}{Possible improvements}
   \begin{center}
-  On rajoute un amb sur quoi enlever.\\
-  Si en étendant on contient la liste initiale, on a gagné !\\Sinon on fail.\\
-
-  Passons à présent à une petite démonstration...
+    \begin{itemize}
+    \item{Solve "once applied operators" problem}
+    \item{Find a Kantian model}
+    \item{Respect "human" memory use}
+  \end{itemize}
+   
   \end{center}
 \end{frame}
 
-  
+\begin{frame}{Conclusion}
+  \begin{center}
+  A not that easy subject\\
+  Factor is a powerful language\\
+  Very instructive project
+  \end{center}
+\end{frame}
+ 
 \end{document}
