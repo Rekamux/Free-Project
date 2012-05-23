@@ -12,7 +12,7 @@ Visit Factor website: http://factorcode.org/, and install latest stable version.
 
 INSTALL LIBRARY:
 
-Copy all files and directories in a folder named 'complexity' in factor/work/
+Copy folder 'complexity' in factor/work/
 
 
 LAUNCH AND TEST:
